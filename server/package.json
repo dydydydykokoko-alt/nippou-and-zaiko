@@ -1,0 +1,21 @@
+{
+  "name": "nippou-line-server",
+  "version": "1.0.0",
+  "description": "LINE Bot server for 作業日報 integration",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@line/bot-sdk": "^9.4.0",
+    "better-sqlite3": "^11.7.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "groq-sdk": "^1.2.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
