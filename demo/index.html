@@ -1,0 +1,1297 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>農業管理システム 体験版</title>
+
+<style>
+:root {
+  --primary: #2d6a4f; --primary-light: #40916c; --primary-dark: #1b4332;
+  --secondary: #d8f3dc; --accent: #52b788;
+  --warning: #f4a261; --danger: #e63946;
+  --danger-bg: #ffe0e3; --warning-bg: #fff3e0; --ok-bg: #d8f3dc;
+  --text: #212529; --text-muted: #6c757d;
+  --bg: #f4f6f4; --white: #ffffff; --border: #dee2e6;
+  --shadow: 0 2px 10px rgba(0,0,0,0.08); --radius: 8px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', sans-serif;
+  background: var(--bg); color: var(--text); font-size: 16px; line-height: 1.6;
+  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+}
+.demo-banner {
+  background: #fff3cd; border-bottom: 2px solid #ffc107;
+  padding: 7px 16px; text-align: center; font-size: 12px; font-weight: 700;
+  color: #664d03; position: sticky; top: 0; z-index: 1001;
+}
+.app-header {
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+  color: white; padding: 12px 16px; display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2); position: sticky; top: 34px; z-index: 1000;
+}
+.app-header h1 { font-size: 18px; font-weight: 700; flex: 1; }
+.tab-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 2000;
+  background: white; display: flex; border-top: 1px solid var(--border);
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.1); padding-bottom: env(safe-area-inset-bottom);
+}
+.tab-btn {
+  flex: 1; padding: 8px 4px; border: none; background: none; color: var(--text-muted);
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  font-size: 10px; font-weight: 500; min-height: 60px; justify-content: center;
+  border-top: 3px solid transparent;
+}
+.tab-btn.active { color: var(--primary); border-top-color: var(--primary); font-weight: 700; background: #f0faf3; }
+.tab-content { display: none; padding: 12px; max-width: 900px; margin: 0 auto; }
+.tab-content.active { display: block; }
+.card { background: var(--white); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); margin-bottom: 14px; }
+.card-title { font-size: 15px; font-weight: 700; color: var(--primary-dark); margin-bottom: 14px; padding-bottom: 10px; border-bottom: 2px solid var(--secondary); display: flex; align-items: center; gap: 6px; }
+.form-group { margin-bottom: 18px; }
+.form-label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 15px; }
+.form-control { width: 100%; padding: 12px; border: 1.5px solid var(--border); border-radius: 6px; font-size: 16px; background: white; -webkit-appearance: none; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 500px) { .grid-2 { grid-template-columns: 1fr; } }
+.btn {
+  padding: 12px 18px; border: none; border-radius: 8px; cursor: pointer;
+  font-size: 15px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 48px;
+}
+.btn-primary { background: var(--primary); color: white; }
+.btn-secondary { background: var(--secondary); color: var(--primary-dark); border: 1px solid var(--accent); }
+.btn-danger { background: var(--danger); color: white; }
+.btn-success { background: #38b000; color: white; }
+.check-group { display: flex; flex-wrap: wrap; gap: 8px; }
+.weather-group { display: flex; flex-wrap: wrap; gap: 8px; }
+.weather-item {
+  display: inline-flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 12px;
+  cursor: pointer; font-size: 13px; min-width: 60px; text-align: center;
+  background: white; transition: all 0.15s;
+}
+.weather-item input[type="radio"] { display: none; }
+.weather-item.selected { background: var(--secondary); border-color: var(--primary); font-weight: 700; }
+.weather-icon { font-size: 24px; line-height: 1; }
+.weather-label { font-size: 11px; color: var(--text-muted); }
+.weather-item.selected .weather-label { color: var(--primary-dark); }
+.check-item {
+  display: inline-flex; align-items: center; gap: 8px; padding: 12px 16px;
+  border: 1.5px solid var(--border); border-radius: 22px; cursor: pointer; font-size: 16px;
+}
+.check-item.checked { background: var(--secondary); border-color: var(--primary); font-weight: 600; }
+.mat-usage-section { border: 1.5px solid var(--border); border-radius: var(--radius); padding: 12px; background: #fafff9; }
+.mat-usage-row { display: grid; grid-template-columns: 1fr 100px 40px; gap: 5px; align-items: center; margin-bottom: 5px; background:white; padding:8px; border-radius:6px; border:1px solid var(--border); }
+.img-upload-area { border: 2px dashed var(--border); border-radius: var(--radius); padding: 16px; text-align: center; background: #fafff9; }
+.img-previews { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.img-preview-item { position: relative; }
+.img-preview-item img { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; }
+.img-remove { position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-weight: bold; cursor: pointer; }
+.inv-table { width: 100%; border-collapse: collapse; }
+.inv-table th { background: var(--primary); color: white; padding: 10px; text-align: left; font-size: 12px; }
+.inv-table td { padding: 10px; border-bottom: 1px solid var(--border); font-size: 13px; }
+.row-low td { background: var(--danger-bg); }
+.loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 9000; }
+.loading-box { background: white; padding: 20px 40px; border-radius: 12px; font-weight: 700; }
+.master-tabs { display: flex; overflow-x: auto; gap: 5px; margin-bottom: 15px; padding-bottom: 5px; }
+.m-tab-btn { padding: 8px 14px; border-radius: 20px; border: 1px solid var(--border); background: white; white-space: nowrap; font-size: 13px; }
+.m-tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); font-weight: 700; }
+.m-list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border); }
+.btn-sm { padding: 8px 14px; font-size: 13px; min-height: 42px; border-radius: 6px; }
+.diary-card { background: white; border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow); margin-bottom: 10px; border-left: 4px solid var(--primary); }
+.diary-card b { color: var(--primary-dark); font-size: 15px; }
+.diary-card small { color: var(--text-muted); font-size: 12px; }
+.toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%); padding:12px 22px; border-radius:8px; color:#fff; font-size:14px; font-weight:600; z-index:9999; box-shadow:0 4px 16px rgba(0,0,0,.2); white-space:nowrap; }
+.no-data { text-align:center; padding:24px; color:var(--text-muted); font-size:13px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div id="loading" class="loading-overlay"><div class="loading-box">⏳ 処理中...</div></div>
+
+<div class="demo-banner">🌱 体験版 — データはこのブラウザにのみ保存されます（Google連携なし）</div>
+
+<header class="app-header">
+  <span style="font-size:24px">🌾</span>
+  <h1>農業管理システム（体験版）</h1>
+</header>
+
+<nav class="tab-nav">
+  <button class="tab-btn active" id="nav-diary" onclick="switchTab('diary')"><span style="font-size:20px">📋</span><span>作業日報</span></button>
+  <button class="tab-btn" id="nav-inventory" onclick="switchTab('inventory')"><span style="font-size:20px">📦</span><span>在庫</span></button>
+  <button class="tab-btn" id="nav-history" onclick="switchTab('history')"><span style="font-size:20px">📊</span><span>履歴</span></button>
+  <button class="tab-btn" id="nav-add" onclick="switchTab('add')"><span style="font-size:20px">➕</span><span>入庫</span></button>
+  <button class="tab-btn" id="nav-master" onclick="switchTab('master')"><span style="font-size:20px">⚙️</span><span>マスタ</span></button>
+</nav>
+
+<!-- 作業日報 -->
+<div id="tab-diary" class="tab-content active">
+  <div class="card">
+    <div class="card-title">📝 日報入力</div>
+    <div class="grid-2">
+      <div class="form-group"><label class="form-label">作業日</label><input type="date" id="d-date" class="form-control"></div>
+      <div class="form-group"><label class="form-label">圃場</label><select id="d-field" class="form-control"></select></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">天気</label>
+      <div class="weather-group">
+        <label class="weather-item" id="w-l-sunny">
+          <input type="radio" name="d-weather" value="晴れ" onchange="onWeatherChange()">
+          <span class="weather-icon">☀️</span><span class="weather-label">晴れ</span>
+        </label>
+        <label class="weather-item" id="w-l-cloudy">
+          <input type="radio" name="d-weather" value="曇り" onchange="onWeatherChange()">
+          <span class="weather-icon">⛅</span><span class="weather-label">曇り</span>
+        </label>
+        <label class="weather-item" id="w-l-rain">
+          <input type="radio" name="d-weather" value="雨" onchange="onWeatherChange()">
+          <span class="weather-icon">🌧️</span><span class="weather-label">雨</span>
+        </label>
+        <label class="weather-item" id="w-l-sunnythenrain">
+          <input type="radio" name="d-weather" value="晴れのち雨" onchange="onWeatherChange()">
+          <span class="weather-icon">🌦️</span><span class="weather-label">晴れのち雨</span>
+        </label>
+        <label class="weather-item" id="w-l-rainthensnny">
+          <input type="radio" name="d-weather" value="雨のち晴れ" onchange="onWeatherChange()">
+          <span class="weather-icon">🌤️</span><span class="weather-label">雨のち晴れ</span>
+        </label>
+        <label class="weather-item" id="w-l-snow">
+          <input type="radio" name="d-weather" value="雪" onchange="onWeatherChange()">
+          <span class="weather-icon">❄️</span><span class="weather-label">雪</span>
+        </label>
+        <label class="weather-item" id="w-l-wind">
+          <input type="radio" name="d-weather" value="強風" onchange="onWeatherChange()">
+          <span class="weather-icon">🌬️</span><span class="weather-label">強風</span>
+        </label>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">作業内容（複数選択可）</label><div id="d-wt-list" class="check-group"></div></div>
+    <div id="mat-section" class="form-group" style="display:none">
+      <label class="form-label">使用資材と量</label>
+      <div class="mat-usage-section"><div id="d-mats"></div></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">作業時間</label>
+      <div class="grid-2">
+        <div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">開始</div>
+          <select id="t-start" class="form-control"></select>
+        </div>
+        <div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">終了</div>
+          <select id="t-end" class="form-control"></select>
+        </div>
+      </div>
+      <div id="dur-display" style="text-align:center;font-size:13px;color:var(--primary);font-weight:600;margin-top:6px"></div>
+    </div>
+    <div class="form-group"><label class="form-label">備考</label><textarea id="d-notes" class="form-control"></textarea></div>
+    <div class="form-group">
+      <label class="form-label">📷 写真撮影</label>
+      <div class="img-upload-area">
+        <button class="btn btn-secondary" onclick="document.getElementById('camera-f').click()">📷 撮影</button>
+        <div class="img-previews" id="img-pre"></div>
+      </div>
+      <input type="file" id="camera-f" accept="image/*" capture="environment" style="display:none" onchange="onFile(this)">
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveDiary()">💾 保存</button>
+      <button class="btn btn-secondary" style="flex:1" onclick="resetDiary()">🔄 リセット</button>
+    </div>
+  </div>
+  <div id="diary-history"></div>
+</div>
+
+<!-- 在庫 -->
+<div id="tab-inventory" class="tab-content">
+  <div class="card">
+    <div class="card-title">📦 現在庫状況</div>
+    <table class="inv-table"><thead><tr><th>資材名</th><th>在庫</th><th>最低</th><th>状態</th></tr></thead><tbody id="inv-body"></tbody></table>
+  </div>
+</div>
+
+<!-- 履歴 -->
+<div id="tab-history" class="tab-content">
+  <div class="card">
+    <div class="card-title">📊 入出庫履歴</div>
+    <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+      <select id="hist-filter-mat" class="form-control" style="flex:1;min-width:120px" onchange="renderHistory()">
+        <option value="">全資材</option>
+      </select>
+      <select id="hist-filter-type" class="form-control" style="width:100px" onchange="renderHistory()">
+        <option value="">全種別</option>
+        <option value="購入">購入</option>
+        <option value="使用">使用</option>
+      </select>
+    </div>
+    <div id="history-list"></div>
+  </div>
+</div>
+
+<!-- 資材追加 -->
+<div id="tab-add" class="tab-content">
+  <div class="card">
+    <div class="card-title">➕ 入庫登録</div>
+    <div class="form-group"><label class="form-label">日付</label><input type="date" id="a-date" class="form-control"></div>
+    <div class="form-group"><label class="form-label">資材</label><select id="a-mat" class="form-control"></select></div>
+    <div class="form-group"><label class="form-label">数量</label><input type="number" id="a-amt" class="form-control" min="0" step="0.01" oninput="calcAddTotal()"></div>
+    <div class="grid-2">
+      <div class="form-group"><label class="form-label">単価（円）</label><input type="number" id="a-price" class="form-control" placeholder="0" min="0" oninput="calcAddTotal()"></div>
+      <div class="form-group"><label class="form-label">金額（円）</label><input type="number" id="a-total" class="form-control" placeholder="自動計算" readonly style="background:var(--bg)"></div>
+    </div>
+    <div class="form-group"><label class="form-label">備考</label><input type="text" id="a-note" class="form-control" placeholder="（任意）"></div>
+    <button class="btn btn-primary" style="width:100%" onclick="saveAdd()">💾 登録</button>
+  </div>
+</div>
+
+<!-- マスタ -->
+<div id="tab-master" class="tab-content">
+  <div class="master-tabs">
+    <button class="m-tab-btn active" onclick="switchMTab('m-f',this)">圃場</button>
+    <button class="m-tab-btn" onclick="switchMTab('m-w',this)">作業</button>
+    <button class="m-tab-btn" onclick="switchMTab('m-m',this)">資材</button>
+    <button class="m-tab-btn" onclick="switchMTab('m-map',this)">紐付</button>
+  </div>
+  <div id="m-f" class="m-tab-content">
+    <div class="card">
+      <div class="grid-2" style="margin-bottom:8px">
+        <input type="text" id="new-f" class="form-control" placeholder="圃場名">
+        <div style="display:flex;gap:5px">
+          <input type="number" id="new-f-area" class="form-control" placeholder="面積" min="0" step="0.01" style="flex:1">
+          <select id="new-f-unit" class="form-control" style="width:90px">
+            <option value="m²">m²</option>
+            <option value="アール">アール</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-sm" style="width:100%" onclick="addField()">＋ 圃場を追加</button>
+      <div id="list-f" style="margin-top:10px"></div>
+    </div>
+  </div>
+  <div id="m-w" class="m-tab-content" style="display:none">
+    <div class="card">
+      <div style="display:flex;gap:5px;margin-bottom:8px">
+        <input type="text" id="new-w" class="form-control" placeholder="作業名">
+        <button class="btn btn-primary btn-sm" onclick="addM('作業内容','new-w')">追加</button>
+      </div>
+      <div id="list-w"></div>
+    </div>
+  </div>
+  <div id="m-m" class="m-tab-content" style="display:none">
+    <div class="card">
+      <div class="grid-2" style="margin-bottom:8px">
+        <input type="text" id="new-m" class="form-control" placeholder="資材名">
+        <select id="new-m-unit" class="form-control">
+          <option value="">単位を選択</option>
+          <option value="kg">kg</option>
+          <option value="g">g</option>
+          <option value="L">L（リットル）</option>
+          <option value="mL">mL</option>
+          <option value="袋">袋</option>
+          <option value="本">本</option>
+          <option value="個">個</option>
+          <option value="枚">枚</option>
+          <option value="箱">箱</option>
+          <option value="束">束</option>
+          <option value="m">m（メートル）</option>
+          <option value="cm">cm</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:5px;margin-bottom:8px;align-items:center">
+        <input type="number" id="new-m-bag" class="form-control" placeholder="1袋の量" min="0" step="0.01" style="flex:1">
+        <span style="white-space:nowrap;color:var(--text-muted);font-size:13px">kg/袋</span>
+      </div>
+      <button class="btn btn-primary btn-sm" style="width:100%" onclick="addMat()">＋ 資材を追加</button>
+      <div id="list-m" style="margin-top:10px"></div>
+    </div>
+  </div>
+  <div id="m-map" class="m-tab-content" style="display:none">
+    <div class="card"><div id="list-map"></div></div>
+  </div>
+</div>
+
+<!-- 紐付け編集モーダル -->
+<div id="map-edit-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:5000;padding:16px;overflow-y:auto">
+  <div style="background:white;border-radius:12px;padding:20px;max-width:480px;margin:60px auto;">
+    <div style="font-size:17px;font-weight:700;margin-bottom:16px;color:var(--primary-dark)" id="map-edit-title">紐付けを編集</div>
+    <div class="form-group">
+      <label class="form-label">使用する資材（複数選択可）</label>
+      <div id="map-edit-mats" class="check-group"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveMapEdit()">💾 保存</button>
+      <button class="btn btn-secondary" style="flex:1" onclick="closeMapEditModal()">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<!-- マスタ編集モーダル -->
+<div id="edit-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:5000;padding:16px;overflow-y:auto">
+  <div style="background:white;border-radius:12px;padding:20px;max-width:480px;margin:60px auto;">
+    <div style="font-size:17px;font-weight:700;margin-bottom:16px;color:var(--primary-dark)" id="edit-modal-title">編集</div>
+    <div id="edit-modal-body"></div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveEdit()">💾 保存</button>
+      <button class="btn btn-secondary" style="flex:1" onclick="closeEditModal()">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<!-- 履歴編集モーダル -->
+<div id="history-edit-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:5000;padding:16px;overflow-y:auto">
+  <div style="background:white;border-radius:12px;padding:20px;max-width:480px;margin:60px auto;">
+    <div style="font-size:17px;font-weight:700;margin-bottom:16px;color:var(--primary-dark)">📊 履歴を編集</div>
+    <div class="grid-2">
+      <div class="form-group"><label class="form-label">日付</label><input type="date" id="he-date" class="form-control"></div>
+      <div class="form-group"><label class="form-label">種別</label>
+        <select id="he-type" class="form-control">
+          <option value="購入">購入</option>
+          <option value="使用">使用</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">資材</label><select id="he-mat" class="form-control"></select></div>
+    <div class="grid-2">
+      <div class="form-group"><label class="form-label">数量</label><input type="number" id="he-amt" class="form-control" min="0" step="0.01" oninput="calcHETotal()"></div>
+      <div class="form-group"><label class="form-label">単価（円）</label><input type="number" id="he-price" class="form-control" min="0" oninput="calcHETotal()"></div>
+    </div>
+    <div class="form-group"><label class="form-label">金額（円）</label><input type="number" id="he-total" class="form-control" readonly style="background:var(--bg)"></div>
+    <div class="form-group"><label class="form-label">備考</label><input type="text" id="he-note" class="form-control"></div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveHistoryEdit()">💾 保存</button>
+      <button class="btn btn-danger btn-sm" style="min-width:80px" onclick="deleteHistoryEntry()">🗑 削除</button>
+      <button class="btn btn-secondary" style="flex:1" onclick="closeHistoryEditModal()">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<!-- 日報編集モーダル -->
+<div id="diary-edit-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:5000;padding:16px;overflow-y:auto">
+  <div style="background:white;border-radius:12px;padding:20px;max-width:480px;margin:40px auto;">
+    <div style="font-size:17px;font-weight:700;margin-bottom:16px;color:var(--primary-dark)">📝 日報を編集</div>
+    <div class="grid-2">
+      <div class="form-group"><label class="form-label">作業日</label><input type="date" id="de-date" class="form-control"></div>
+      <div class="form-group"><label class="form-label">圃場</label><select id="de-field" class="form-control"></select></div>
+    </div>
+    <div class="form-group"><label class="form-label">作業内容</label><div id="de-wt-list" class="check-group"></div></div>
+    <div id="de-mat-section" class="form-group" style="display:none">
+      <label class="form-label">使用資材と量</label>
+      <div class="mat-usage-section"><div id="de-mats"></div></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">時間</label>
+      <div class="grid-2">
+        <input type="time" id="de-start" class="form-control" placeholder="開始">
+        <input type="time" id="de-end" class="form-control" placeholder="終了">
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">備考</label><textarea id="de-notes" class="form-control" rows="3"></textarea></div>
+    <div class="form-group">
+      <label class="form-label">📷 写真</label>
+      <div class="img-upload-area">
+        <button class="btn btn-secondary" onclick="document.getElementById('de-camera').click()">📷 追加</button>
+        <div class="img-previews" id="de-img-pre"></div>
+      </div>
+      <input type="file" id="de-camera" accept="image/*" capture="environment" style="display:none" onchange="onDEFile(this)">
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveDiaryEdit()">💾 保存</button>
+      <button class="btn btn-danger btn-sm" style="min-width:80px" onclick="deleteDiaryEntry()">🗑 削除</button>
+      <button class="btn btn-secondary" style="flex:1" onclick="closeDiaryEditModal()">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var state = { fields:[], wts:[], mats:[], mapping:[], inv:[], diary:[], history:[] };
+var images = [];
+
+// ============================================================
+// UI ヘルパー
+// ============================================================
+function showLoad(){ document.getElementById('loading').style.display='flex'; }
+function hideLoad(){ document.getElementById('loading').style.display='none'; }
+
+// ============================================================
+// 体験版 データ件数制限
+// ============================================================
+var DEMO_LIMITS = { '作業日報':10, '入出庫':10, '圃場':5, '作業内容':5, '資材マスタ':5 };
+
+function checkLimit(sheet, label){
+  var max = DEMO_LIMITS[sheet];
+  if(!max) return false;
+  if(demoFetch(sheet).length >= max){
+    toast('体験版の上限（'+max+'件）に達しました：'+label,'error');
+    return true;
+  }
+  return false;
+}
+
+var _toastEl = null;
+function toast(msg, type){
+  if(_toastEl){ _toastEl.remove(); _toastEl=null; }
+  _toastEl = document.createElement('div');
+  _toastEl.className = 'toast';
+  _toastEl.style.background = (type==='error') ? '#e63946' : '#2d6a4f';
+  _toastEl.textContent = msg;
+  document.body.appendChild(_toastEl);
+  setTimeout(function(){ if(_toastEl){ _toastEl.remove(); _toastEl=null; } }, 3500);
+}
+
+function switchTab(id){
+  document.querySelectorAll('.tab-content').forEach(function(c){ c.classList.remove('active'); });
+  document.querySelectorAll('.tab-nav .tab-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('tab-'+id).classList.add('active');
+  document.getElementById('nav-'+id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function switchMTab(id, el){
+  document.querySelectorAll('.m-tab-content').forEach(function(c){ c.style.display='none'; });
+  document.querySelectorAll('.m-tab-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById(id).style.display='block';
+  el.classList.add('active');
+}
+
+// ============================================================
+// ローカルストレージ操作
+// ============================================================
+var DP = 'demo_';
+
+function demoFetch(sheet){
+  var d = localStorage.getItem(DP+sheet);
+  return d ? JSON.parse(d) : [];
+}
+
+function demoSave(sheet, data){
+  localStorage.setItem(DP+sheet, JSON.stringify(data));
+}
+
+function demoAppend(sheet, row){
+  var data = demoFetch(sheet);
+  data.push(row);
+  demoSave(sheet, data);
+}
+
+function demoWriteRange(sheet, rowIdx, colStart, values){
+  var data = demoFetch(sheet);
+  if(rowIdx < 0 || rowIdx >= data.length) return;
+  while(data[rowIdx].length < colStart + values.length) data[rowIdx].push('');
+  for(var i=0; i<values.length; i++) data[rowIdx][colStart+i] = values[i];
+  demoSave(sheet, data);
+}
+
+function demoDeleteById(sheet, id){
+  var data = demoFetch(sheet);
+  var idx = data.findIndex(function(r){ return String(r[0])===String(id); });
+  if(idx >= 0){ data.splice(idx,1); demoSave(sheet, data); }
+}
+
+// ============================================================
+// サンプルデータ（初回のみ投入）
+// ============================================================
+function initSampleData(){
+  if(localStorage.getItem('demo_initialized')) return;
+
+  var f1=genId(), f2=genId(), f3=genId();
+  demoSave('圃場',[
+    [f1,'北圃場','50','アール'],
+    [f2,'南圃場','30','アール'],
+    [f3,'ハウス1号','200','m²']
+  ]);
+
+  var w1=genId(),w2=genId(),w3=genId(),w4=genId(),w5=genId(),w6=genId();
+  demoSave('作業内容',[
+    [w1,'施肥'],[w2,'農薬散布'],[w3,'除草'],[w4,'定植'],[w5,'収穫'],[w6,'土寄せ']
+  ]);
+
+  var m1=genId(),m2=genId(),m3=genId(),m4=genId();
+  demoSave('資材マスタ',[
+    [m1,'化成肥料','kg','20'],
+    [m2,'農薬A','mL',''],
+    [m3,'マルチ','枚',''],
+    [m4,'種子','袋','']
+  ]);
+
+  demoSave('作業内容_資材',[
+    [w1,m1],
+    [w2,m2],
+    [w4,m3],
+    [w4,m4]
+  ]);
+
+  demoSave('在庫',[
+    [m1,'150','20'],
+    [m2,'5000','500'],
+    [m3,'50','10'],
+    [m4,'20','5']
+  ]);
+
+  demoSave('作業日報',[
+    [genId(),'2026-05-10',f1,w1,m1+':5','07:00','420','施肥作業。今年初回。','北圃場','施肥'],
+    [genId(),'2026-05-13',f2,w2,m2+':200','09:00','240','南圃場の農薬散布完了','南圃場','農薬散布'],
+    [genId(),'2026-05-17',f3,w4,m3+':3,'+m4+':2','08:00','300','春の定植を完了','ハウス1号','定植']
+  ]);
+
+  demoSave('入出庫',[
+    [genId(),'2026-05-01',m1,'購入','200','80','16000','春の仕入れ','化成肥料'],
+    [genId(),'2026-05-02',m2,'購入','10000','5','50000','農薬在庫補充','農薬A'],
+    [genId(),'2026-05-03',m3,'購入','100','150','15000','マルチ補充','マルチ'],
+    [genId(),'2026-05-10',m1,'使用','5','','','施肥','化成肥料'],
+    [genId(),'2026-05-13',m2,'使用','200','','','農薬散布','農薬A'],
+    [genId(),'2026-05-17',m3,'使用','3','','','定植','マルチ'],
+    [genId(),'2026-05-17',m4,'使用','2','','','定植','種子']
+  ]);
+
+  localStorage.setItem('demo_initialized','1');
+}
+
+// ============================================================
+// 初期化
+// ============================================================
+window.onload = function(){
+  initSampleData();
+
+  document.getElementById('d-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('a-date').value = new Date().toISOString().split('T')[0];
+
+  var timeOpts = '<option value="">--</option>';
+  for(var h=4; h<=21; h++){
+    ['00','15','30','45'].forEach(function(m){
+      var val = String(h).padStart(2,'0')+':'+m;
+      timeOpts += '<option value="'+val+'">'+val+'</option>';
+    });
+  }
+  document.getElementById('t-start').innerHTML = timeOpts;
+  document.getElementById('t-end').innerHTML   = timeOpts;
+  document.getElementById('t-start').addEventListener('change', calcDur);
+  document.getElementById('t-end').addEventListener('change', calcDur);
+  setDefaultTime();
+
+  load();
+};
+
+// ============================================================
+// データ読み込み
+// ============================================================
+function load(){
+  state.fields  = demoFetch('圃場');
+  state.wts     = demoFetch('作業内容');
+  state.mats    = demoFetch('資材マスタ');
+  state.mapping = demoFetch('作業内容_資材');
+  state.inv     = demoFetch('在庫');
+  state.diary   = demoFetch('作業日報');
+  state.history = demoFetch('入出庫');
+  render();
+}
+
+// ============================================================
+// 画面描画
+// ============================================================
+function render(){
+  document.getElementById('d-field').innerHTML =
+    '<option value="">-- 圃場を選択 --</option>'+
+    state.fields.map(function(f){ return '<option value="'+f[0]+'">'+f[1]+'</option>'; }).join('');
+  document.getElementById('d-wt-list').innerHTML =
+    state.wts.map(function(w){
+      return '<label class="check-item" id="wt-l-'+w[0]+'"><input type="checkbox" value="'+w[0]+'" onchange="onWTC(this)"> '+w[1]+'</label>';
+    }).join('') || '<span style="color:var(--text-muted);font-size:13px">作業内容が登録されていません</span>';
+  document.getElementById('a-mat').innerHTML =
+    '<option value="">-- 資材を選択 --</option>'+
+    state.mats.map(function(m){ return '<option value="'+m[0]+'">'+m[1]+'</option>'; }).join('');
+  document.getElementById('inv-body').innerHTML =
+    state.inv.length===0
+      ? '<tr><td colspan="4" class="no-data">在庫データがありません</td></tr>'
+      : state.inv.map(function(i){
+          var m = state.mats.find(function(x){ return x[0]===i[0]; });
+          var low = Number(i[1]) < Number(i[2]);
+          return '<tr class="'+(low?'row-low':'')+'"><td>'+(m?m[1]:'不明')+'</td>'
+            +'<td>'+i[1]+'</td><td>'+i[2]+'</td><td>'+(low?'⚠ 不足':'✓ OK')+'</td></tr>';
+        }).join('');
+
+  var hfm = document.getElementById('hist-filter-mat');
+  var prevMat = hfm.value;
+  hfm.innerHTML = '<option value="">全資材</option>'+
+    state.mats.map(function(m){ return '<option value="'+m[0]+'">'+escH(m[1])+'</option>'; }).join('');
+  hfm.value = prevMat;
+  renderHistory();
+
+  var dh = state.diary.slice().reverse().map(function(d){
+    return '<div class="diary-card" style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">'
+      +'<div style="flex:1"><b>'+escH(d[1]||'')+'</b> &nbsp;'
+      +(d[8]?escH(d[8]):'')+( d[9]?' / '+escH(d[9]):'')+( d[6]?' / '+d[6]+'分':'')
+      +(d[7]?'<br><small>📝 '+escH(d[7])+'</small>':'')+'</div>'
+      +'<button class="btn btn-secondary btn-sm" style="white-space:nowrap;flex-shrink:0" onclick="openDiaryEdit(\''+d[0]+'\')">編集</button>'
+      +'</div>';
+  }).join('');
+  document.getElementById('diary-history').innerHTML = dh || '<div class="no-data">日報がありません</div>';
+
+  document.getElementById('list-f').innerHTML =
+    state.fields.map(function(f){
+      var area = f[2] ? escH(f[2])+escH(f[3]||'m²') : '';
+      return '<div class="m-list-item"><div><div style="font-weight:600">'+escH(f[1])+'</div>'
+        +(area?'<div style="font-size:12px;color:var(--text-muted)">面積: '+area+'</div>':'')+'</div>'
+        +'<div style="display:flex;gap:6px">'
+        +'<button class="btn btn-secondary btn-sm" onclick="openEdit(\'圃場\',\''+f[0]+'\')">編集</button>'
+        +'<button class="btn btn-danger btn-sm" onclick="delM(\'圃場\',\''+f[0]+'\')">削除</button></div></div>';
+    }).join('') || '<div class="no-data">登録なし</div>';
+  document.getElementById('list-w').innerHTML =
+    state.wts.map(function(w){
+      return '<div class="m-list-item"><span style="font-weight:600">'+escH(w[1])+'</span>'
+        +'<div style="display:flex;gap:6px">'
+        +'<button class="btn btn-secondary btn-sm" onclick="openEdit(\'作業内容\',\''+w[0]+'\')">編集</button>'
+        +'<button class="btn btn-danger btn-sm" onclick="delM(\'作業内容\',\''+w[0]+'\')">削除</button></div></div>';
+    }).join('') || '<div class="no-data">登録なし</div>';
+  document.getElementById('list-m').innerHTML =
+    state.mats.map(function(m){
+      var sub=[];
+      if(m[2]) sub.push('単位: '+escH(m[2]));
+      if(m[3]) sub.push('1袋: '+escH(m[3])+'kg');
+      return '<div class="m-list-item"><div><div style="font-weight:600">'+escH(m[1])+'</div>'
+        +(sub.length?'<div style="font-size:12px;color:var(--text-muted)">'+sub.join(' / ')+'</div>':'')+'</div>'
+        +'<div style="display:flex;gap:6px">'
+        +'<button class="btn btn-secondary btn-sm" onclick="openEdit(\'資材マスタ\',\''+m[0]+'\')">編集</button>'
+        +'<button class="btn btn-danger btn-sm" onclick="delM(\'資材マスタ\',\''+m[0]+'\')">削除</button></div></div>';
+    }).join('') || '<div class="no-data">登録なし</div>';
+  document.getElementById('list-map').innerHTML =
+    state.wts.length===0 ? '<div class="no-data">作業内容を先に登録してください</div>'
+    : state.wts.map(function(w){
+        var mapped = state.mapping.filter(function(m){ return m[0]===w[0]; });
+        var names = mapped.map(function(m){
+          var mat=state.mats.find(function(x){ return x[0]===m[1]; }); return mat?mat[1]:'';
+        }).filter(Boolean).join('、');
+        return '<div class="m-list-item">'
+          +'<div><div style="font-weight:600">'+escH(w[1])+'</div>'
+          +'<div style="font-size:12px;color:var(--text-muted)">'+(names||'未設定')+'</div></div>'
+          +'<button class="btn btn-secondary btn-sm" onclick="openMapEdit(\''+w[0]+'\')">編集</button>'
+          +'</div>';
+      }).join('');
+}
+
+function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function genId(){ return Date.now().toString(36)+Math.random().toString(36).substr(2); }
+
+// ============================================================
+// 現在時刻を15分刻みに丸めてドロップダウンにセット
+// ============================================================
+function currentTime15(){
+  var now = new Date();
+  var m = Math.round(now.getMinutes() / 15) * 15;
+  var h = now.getHours() + (m === 60 ? 1 : 0);
+  m = m === 60 ? 0 : m;
+  return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+}
+function setDefaultTime(){
+  var t = currentTime15();
+  var s = document.getElementById('t-start');
+  var e = document.getElementById('t-end');
+  if(Array.from(s.options).some(function(o){ return o.value===t; })){
+    s.value = t;
+    e.value = t;
+    calcDur();
+  }
+}
+
+// ============================================================
+// 天気選択
+// ============================================================
+function onWeatherChange(){
+  document.querySelectorAll('.weather-item').forEach(function(el){
+    var radio = el.querySelector('input[type="radio"]');
+    if(radio && radio.checked) el.classList.add('selected');
+    else el.classList.remove('selected');
+  });
+}
+
+// ============================================================
+// 作業内容チェック
+// ============================================================
+function onWTC(el){
+  var l = document.getElementById('wt-l-'+el.value);
+  if(el.checked) l.classList.add('checked'); else l.classList.remove('checked');
+  var sel = Array.from(document.querySelectorAll('#d-wt-list input:checked')).map(function(i){ return i.value; });
+  var mids = new Set();
+  state.mapping.filter(function(m){ return sel.includes(m[0]); }).forEach(function(m){ mids.add(m[1]); });
+  var sec = document.getElementById('mat-section');
+  if(mids.size > 0){
+    sec.style.display='block';
+    document.getElementById('d-mats').innerHTML = Array.from(mids).map(function(id){
+      var m = state.mats.find(function(x){ return x[0]===id; });
+      return m ? '<div class="mat-usage-row"><span>'+escH(m[1])+'</span>'
+        +'<input type="number" class="form-control" data-id="'+id+'" placeholder="0" min="0" step="0.01">'
+        +'<span>'+escH(m[2]||'')+'</span></div>' : '';
+    }).join('');
+  } else { sec.style.display='none'; }
+}
+
+// ============================================================
+// 写真 共通ヘルパー
+// ============================================================
+function compressImage(dataUrl, cb){
+  var img = new Image();
+  img.onload = function(){
+    var MAX = 600;
+    var w = img.width, h = img.height;
+    if(w > MAX || h > MAX){ var r = MAX/Math.max(w,h); w=Math.round(w*r); h=Math.round(h*r); }
+    var c = document.createElement('canvas'); c.width=w; c.height=h;
+    c.getContext('2d').drawImage(img,0,0,w,h);
+    cb(c.toDataURL('image/jpeg', 0.55));
+  };
+  img.src = dataUrl;
+}
+function photoKey(id){ return 'demo_photo_'+id; }
+function savePhotos(id, arr){ localStorage.setItem(photoKey(id), JSON.stringify(arr)); }
+function loadPhotos(id){ try{ return JSON.parse(localStorage.getItem(photoKey(id))||'[]'); }catch(e){ return []; } }
+function removePhotos(id){ localStorage.removeItem(photoKey(id)); }
+
+function onFile(inp){
+  Array.from(inp.files||[]).slice(0, 5-images.length).forEach(function(f){
+    var r=new FileReader();
+    r.onload=function(e){ compressImage(e.target.result, function(d){ images.push(d); renderI(); }); };
+    r.readAsDataURL(f);
+  });
+}
+function renderI(){
+  document.getElementById('img-pre').innerHTML = images.map(function(img,i){
+    return '<div class="img-preview-item"><img src="'+img+'">'
+      +'<button class="img-remove" onclick="images.splice('+i+',1);renderI()">✕</button></div>';
+  }).join('');
+}
+
+var editImages = [];
+function onDEFile(inp){
+  Array.from(inp.files||[]).slice(0, 5-editImages.length).forEach(function(f){
+    var r=new FileReader();
+    r.onload=function(e){ compressImage(e.target.result, function(d){ editImages.push(d); renderDEI(); }); };
+    r.readAsDataURL(f);
+  });
+}
+function renderDEI(){
+  document.getElementById('de-img-pre').innerHTML = editImages.map(function(img,i){
+    return '<div class="img-preview-item"><img src="'+img+'">'
+      +'<button class="img-remove" onclick="editImages.splice('+i+',1);renderDEI()">✕</button></div>';
+  }).join('');
+}
+
+// ============================================================
+// 作業時間（ドロップダウン）
+// ============================================================
+function calcDur(){
+  var sv=document.getElementById('t-start').value;
+  var ev=document.getElementById('t-end').value;
+  var disp=document.getElementById('dur-display');
+  if(!sv||!ev){ disp.textContent=''; return; }
+  var sp=sv.split(':'), ep=ev.split(':');
+  var dur=(parseInt(ep[0])*60+parseInt(ep[1]))-(parseInt(sp[0])*60+parseInt(sp[1]));
+  if(dur<0) dur+=1440;
+  disp.textContent=dur+'分（'+Math.floor(dur/60)+'時間'+dur%60+'分）';
+}
+
+// ============================================================
+// 日報リセット
+// ============================================================
+function resetDiary(){
+  images=[]; renderI();
+  document.getElementById('d-notes').value='';
+  document.getElementById('d-date').value=new Date().toISOString().split('T')[0];
+  document.querySelectorAll('#d-wt-list input').forEach(function(cb){
+    cb.checked=false;
+    var l=document.getElementById('wt-l-'+cb.value); if(l) l.classList.remove('checked');
+  });
+  document.getElementById('mat-section').style.display='none';
+  setDefaultTime();
+}
+
+// ============================================================
+// 日報保存
+// ============================================================
+function saveDiary(){
+  if(checkLimit('作業日報','作業日報')) return;
+  var date=document.getElementById('d-date').value;
+  var fieldId=document.getElementById('d-field').value;
+  if(!date||!fieldId){ toast('日付と圃場は必須です','error'); return; }
+  var wtIds=Array.from(document.querySelectorAll('#d-wt-list input:checked')).map(function(i){ return i.value; });
+  if(!wtIds.length){ toast('作業内容を選択してください','error'); return; }
+  var sel=document.getElementById('d-field');
+  var fieldName=sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].text:'';
+  var wtNames=wtIds.map(function(id){ var w=state.wts.find(function(x){return x[0]===id;}); return w?w[1]:''; }).join('、');
+  var matInputs=Array.from(document.querySelectorAll('#d-mats input[data-id]')).filter(function(i){ return parseFloat(i.value)>0; });
+  var matStr=matInputs.map(function(i){ return i.getAttribute('data-id')+':'+i.value; }).join(',');
+  var startT=document.getElementById('t-start').value;
+  var endT=document.getElementById('t-end').value;
+  var dur='';
+  if(startT&&endT){
+    var sp=startT.split(':'),ep=endT.split(':');
+    dur=(parseInt(ep[0])*60+parseInt(ep[1]))-(parseInt(sp[0])*60+parseInt(sp[1]));
+    if(dur<0) dur+=1440;
+  }
+  showLoad();
+  try {
+    demoAppend('作業日報',[genId(),date,fieldId,wtIds.join(','),matStr,startT,dur,document.getElementById('d-notes').value,fieldName,wtNames]);
+    if(matInputs.length){
+      var rawInv=demoFetch('在庫');
+      for(var i=0;i<matInputs.length;i++){
+        var mid=matInputs[i].getAttribute('data-id');
+        var amt=parseFloat(matInputs[i].value)||0;
+        var mat2=state.mats.find(function(x){ return x[0]===mid; });
+        demoAppend('入出庫',[genId(),date,mid,'使用',amt,'','',wtNames,mat2?mat2[1]:'']);
+        var idx=rawInv.findIndex(function(r){ return r[0]===mid; });
+        if(idx>=0){
+          demoWriteRange('在庫',idx,1,[(parseFloat(rawInv[idx][1])||0)-amt]);
+          rawInv=demoFetch('在庫');
+        }
+      }
+    }
+    load(); resetDiary(); toast('日報を保存しました');
+  } catch(e){ toast('保存エラー: '+e.message,'error'); }
+  hideLoad();
+}
+
+// ============================================================
+// 入庫登録
+// ============================================================
+function calcAddTotal(){
+  var qty=parseFloat(document.getElementById('a-amt').value)||0;
+  var price=parseFloat(document.getElementById('a-price').value)||0;
+  document.getElementById('a-total').value=(qty&&price)?Math.round(qty*price):'';
+}
+
+function saveAdd(){
+  if(checkLimit('入出庫','入庫登録')) return;
+  var date=document.getElementById('a-date').value;
+  var matId=document.getElementById('a-mat').value;
+  var amt=parseFloat(document.getElementById('a-amt').value)||0;
+  if(!date){ toast('日付を入力してください','error'); return; }
+  if(!matId){ toast('資材を選択してください','error'); return; }
+  if(amt<=0){ toast('数量を入力してください','error'); return; }
+  var price=parseFloat(document.getElementById('a-price').value)||0;
+  var total=parseFloat(document.getElementById('a-total').value)||0;
+  var note=document.getElementById('a-note').value.trim();
+  showLoad();
+  try {
+    var mat=state.mats.find(function(m){ return m[0]===matId; });
+    demoAppend('入出庫',[genId(),date,matId,'購入',amt,price,total,note,mat?mat[1]:'']);
+    var rawInv=demoFetch('在庫');
+    var idx=rawInv.findIndex(function(r){ return r[0]===matId; });
+    if(idx>=0) demoWriteRange('在庫',idx,1,[(parseFloat(rawInv[idx][1])||0)+amt]);
+    else demoAppend('在庫',[matId,amt,0]);
+    load();
+    document.getElementById('a-amt').value='';
+    document.getElementById('a-price').value='';
+    document.getElementById('a-total').value='';
+    document.getElementById('a-note').value='';
+    toast('入庫を登録しました');
+  } catch(e){ toast('登録エラー: '+e.message,'error'); }
+  hideLoad();
+}
+
+// ============================================================
+// 圃場・資材・マスタ追加
+// ============================================================
+function addField(){
+  if(checkLimit('圃場','圃場')) return;
+  var name=document.getElementById('new-f').value.trim();
+  if(!name){ toast('圃場名を入力してください','error'); return; }
+  var area=document.getElementById('new-f-area').value.trim();
+  var unit=document.getElementById('new-f-unit').value;
+  demoAppend('圃場',[genId(),name,area,area?unit:'']);
+  document.getElementById('new-f').value=''; document.getElementById('new-f-area').value='';
+  load(); toast('圃場を追加しました');
+}
+
+function addMat(){
+  if(checkLimit('資材マスタ','資材')) return;
+  var name=document.getElementById('new-m').value.trim();
+  if(!name){ toast('資材名を入力してください','error'); return; }
+  var unit=document.getElementById('new-m-unit').value.trim();
+  var bag=document.getElementById('new-m-bag').value.trim();
+  var id=genId();
+  demoAppend('資材マスタ',[id,name,unit,bag]);
+  demoAppend('在庫',[id,0,0]);
+  document.getElementById('new-m').value=''; document.getElementById('new-m-unit').value=''; document.getElementById('new-m-bag').value='';
+  load(); toast('資材を追加しました');
+}
+
+function addM(sheetName,inputId){
+  if(checkLimit(sheetName, sheetName)) return;
+  var val=document.getElementById(inputId).value.trim();
+  if(!val){ toast('名前を入力してください','error'); return; }
+  demoAppend(sheetName,[genId(),val]);
+  document.getElementById(inputId).value='';
+  load(); toast('追加しました');
+}
+
+// ============================================================
+// マスタ編集・削除
+// ============================================================
+var _editCtx=null;
+
+function openEdit(sheetName,id){
+  var item,fieldDefs;
+  if(sheetName==='圃場'){
+    item=state.fields.find(function(f){ return f[0]===id; }); if(!item) return;
+    fieldDefs=[{label:'圃場名',val:item[1]||'',type:'text'},{label:'面積',val:item[2]||'',type:'number'},{label:'単位',val:item[3]||'m²',type:'select',options:['m²','アール']}];
+  } else if(sheetName==='作業内容'){
+    item=state.wts.find(function(w){ return w[0]===id; }); if(!item) return;
+    fieldDefs=[{label:'作業名',val:item[1]||'',type:'text'}];
+  } else if(sheetName==='資材マスタ'){
+    item=state.mats.find(function(m){ return m[0]===id; }); if(!item) return;
+    fieldDefs=[{label:'資材名',val:item[1]||'',type:'text'},{label:'単位',val:item[2]||'',type:'select',options:['','kg','g','L','mL','袋','本','個','枚','箱','束','m','cm']},{label:'1袋の量(kg)',val:item[3]||'',type:'number'}];
+  } else return;
+  _editCtx={sheetName:sheetName,id:id,fieldDefs:fieldDefs};
+  document.getElementById('edit-modal-title').textContent=sheetName+'を編集';
+  document.getElementById('edit-modal-body').innerHTML=fieldDefs.map(function(f,i){
+    if(f.type==='select') return '<div class="form-group"><label class="form-label">'+f.label+'</label><select id="ef-'+i+'" class="form-control">'+f.options.map(function(o){ return '<option value="'+o+'"'+(o===f.val?' selected':'')+'>'+o+'</option>'; }).join('')+'</select></div>';
+    return '<div class="form-group"><label class="form-label">'+f.label+'</label><input type="'+f.type+'" id="ef-'+i+'" class="form-control" value="'+escH(f.val)+'"></div>';
+  }).join('');
+  document.getElementById('edit-modal').style.display='block';
+}
+
+function closeEditModal(){ document.getElementById('edit-modal').style.display='none'; _editCtx=null; }
+
+function saveEdit(){
+  if(!_editCtx) return;
+  var vals=_editCtx.fieldDefs.map(function(_,i){ return document.getElementById('ef-'+i).value.trim(); });
+  if(!vals[0]){ toast('名前を入力してください','error'); return; }
+  var data=demoFetch(_editCtx.sheetName);
+  var idx=data.findIndex(function(r){ return r[0]===_editCtx.id; });
+  if(idx<0){ toast('対象データが見つかりません','error'); return; }
+  demoWriteRange(_editCtx.sheetName, idx, 1, vals);
+  closeEditModal(); load(); toast('更新しました');
+}
+
+function delM(sheetName,id){
+  if(!confirm('削除しますか？')) return;
+  demoDeleteById(sheetName, id);
+  load(); toast('削除しました');
+}
+
+// ============================================================
+// 日報編集
+// ============================================================
+var _diaryEditId = null;
+
+function openDiaryEdit(id){
+  var entry = state.diary.find(function(d){ return d[0]===id; });
+  if(!entry) return;
+  _diaryEditId = id;
+  document.getElementById('de-field').innerHTML =
+    '<option value="">-- 圃場を選択 --</option>'+
+    state.fields.map(function(f){
+      return '<option value="'+f[0]+'"'+(f[0]===entry[2]?' selected':'')+'>'+f[1]+'</option>';
+    }).join('');
+  var wtIds = (entry[3]||'').split(',').filter(Boolean);
+  document.getElementById('de-wt-list').innerHTML =
+    state.wts.map(function(w){
+      var chk = wtIds.includes(w[0]);
+      return '<label class="check-item'+(chk?' checked':'')+'" id="de-wt-l-'+w[0]+'">'
+        +'<input type="checkbox" value="'+w[0]+'"'+(chk?' checked':'')+' onchange="onDEWTC(this)"> '+escH(w[1])+'</label>';
+    }).join('');
+  document.getElementById('de-date').value  = entry[1]||'';
+  document.getElementById('de-start').value = entry[5]||'';
+  if(entry[5] && entry[6]){
+    var sp=entry[5].split(':').map(Number);
+    var endMin=(sp[0]*60+sp[1])+(parseInt(entry[6])||0);
+    document.getElementById('de-end').value =
+      String(Math.floor(endMin/60)%24).padStart(2,'0')+':'+String(endMin%60).padStart(2,'0');
+  } else {
+    document.getElementById('de-end').value = '';
+  }
+  document.getElementById('de-notes').value = entry[7]||'';
+  editImages = loadPhotos(id);
+  renderDEI();
+  updateDEMats(wtIds, entry[4]||'');
+  document.getElementById('diary-edit-modal').style.display='block';
+}
+
+function updateDEMats(wtIds, matStr){
+  var matMap={};
+  (matStr||'').split(',').forEach(function(s){
+    var p=s.split(':'); if(p.length===2) matMap[p[0]]=p[1];
+  });
+  var mids=new Set();
+  state.mapping.filter(function(m){ return wtIds.includes(m[0]); }).forEach(function(m){ mids.add(m[1]); });
+  var sec=document.getElementById('de-mat-section');
+  if(mids.size>0){
+    sec.style.display='block';
+    document.getElementById('de-mats').innerHTML=Array.from(mids).map(function(mid){
+      var m=state.mats.find(function(x){ return x[0]===mid; });
+      return m?'<div class="mat-usage-row"><span>'+escH(m[1])+'</span>'
+        +'<input type="number" class="form-control" data-id="'+mid+'" value="'+(matMap[mid]||'')+'" placeholder="0" min="0" step="0.01">'
+        +'<span>'+escH(m[2]||'')+'</span></div>':'';
+    }).join('');
+  } else { sec.style.display='none'; }
+}
+
+function onDEWTC(el){
+  var l=document.getElementById('de-wt-l-'+el.value);
+  if(el.checked) l.classList.add('checked'); else l.classList.remove('checked');
+  var sel=Array.from(document.querySelectorAll('#de-wt-list input:checked')).map(function(i){ return i.value; });
+  updateDEMats(sel,'');
+}
+
+function closeDiaryEditModal(){
+  document.getElementById('diary-edit-modal').style.display='none';
+  _diaryEditId=null;
+  editImages=[];
+  renderDEI();
+}
+
+function saveDiaryEdit(){
+  if(!_diaryEditId) return;
+  var date    = document.getElementById('de-date').value;
+  var fieldId = document.getElementById('de-field').value;
+  if(!date||!fieldId){ toast('日付と圃場は必須です','error'); return; }
+  var wtIds=Array.from(document.querySelectorAll('#de-wt-list input:checked')).map(function(i){ return i.value; });
+  if(!wtIds.length){ toast('作業内容を選択してください','error'); return; }
+  var sel=document.getElementById('de-field');
+  var fieldName=sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].text:'';
+  var wtNames=wtIds.map(function(id){ var w=state.wts.find(function(x){ return x[0]===id; }); return w?w[1]:''; }).join('、');
+  var matInputs=Array.from(document.querySelectorAll('#de-mats input[data-id]')).filter(function(i){ return parseFloat(i.value)>0; });
+  var matStr=matInputs.map(function(i){ return i.getAttribute('data-id')+':'+i.value; }).join(',');
+  var startT=document.getElementById('de-start').value;
+  var endT  =document.getElementById('de-end').value;
+  var dur='';
+  if(startT&&endT){
+    var s=startT.split(':').map(Number),e=endT.split(':').map(Number);
+    dur=(e[0]*60+e[1])-(s[0]*60+s[1]); if(dur<0) dur+=1440;
+  }
+  var notes=document.getElementById('de-notes').value;
+  showLoad();
+  try {
+    var orig=state.diary.find(function(d){ return d[0]===_diaryEditId; });
+    var rawInv=demoFetch('在庫');
+    if(orig&&orig[4]){
+      orig[4].split(',').forEach(function(s){
+        var p=s.split(':'); if(p.length!==2) return;
+        var mid=p[0], amt=parseFloat(p[1])||0;
+        var idx=rawInv.findIndex(function(r){ return r[0]===mid; });
+        if(idx>=0) demoWriteRange('在庫',idx,1,[(parseFloat(rawInv[idx][1])||0)+amt]);
+      });
+      rawInv=demoFetch('在庫');
+    }
+    var data=demoFetch('作業日報');
+    var idx=data.findIndex(function(r){ return r[0]===_diaryEditId; });
+    if(idx<0){ toast('日報が見つかりません','error'); hideLoad(); return; }
+    demoWriteRange('作業日報',idx,1,[date,fieldId,wtIds.join(','),matStr,startT,dur,notes,fieldName,wtNames]);
+    for(var i=0;i<matInputs.length;i++){
+      var mid=matInputs[i].getAttribute('data-id');
+      var amt=parseFloat(matInputs[i].value)||0;
+      var ri=rawInv.findIndex(function(r){ return r[0]===mid; });
+      if(ri>=0){
+        demoWriteRange('在庫',ri,1,[(parseFloat(rawInv[ri][1])||0)-amt]);
+        rawInv=demoFetch('在庫');
+      }
+    }
+    if(editImages.length) savePhotos(_diaryEditId, editImages);
+    else removePhotos(_diaryEditId);
+    closeDiaryEditModal();
+    load();
+    toast('日報を更新しました');
+  } catch(e){ toast('更新エラー: '+e.message,'error'); }
+  hideLoad();
+}
+
+function deleteDiaryEntry(){
+  if(!_diaryEditId) return;
+  if(!confirm('この日報を削除しますか？')) return;
+  showLoad();
+  try {
+    var orig=state.diary.find(function(d){ return d[0]===_diaryEditId; });
+    if(orig&&orig[4]){
+      var rawInv=demoFetch('在庫');
+      orig[4].split(',').forEach(function(s){
+        var p=s.split(':'); if(p.length!==2) return;
+        var mid=p[0], amt=parseFloat(p[1])||0;
+        var idx=rawInv.findIndex(function(r){ return r[0]===mid; });
+        if(idx>=0) demoWriteRange('在庫',idx,1,[(parseFloat(rawInv[idx][1])||0)+amt]);
+      });
+    }
+    demoDeleteById('作業日報', _diaryEditId);
+    removePhotos(_diaryEditId);
+    closeDiaryEditModal();
+    load();
+    toast('日報を削除しました');
+  } catch(e){ toast('削除エラー: '+e.message,'error'); }
+  hideLoad();
+}
+
+// ============================================================
+// 紐付け編集
+// ============================================================
+var _mapEditWtId = null;
+
+function openMapEdit(wtId){
+  var wt = state.wts.find(function(w){ return w[0]===wtId; });
+  if(!wt) return;
+  _mapEditWtId = wtId;
+  var currentMats = state.mapping.filter(function(m){ return m[0]===wtId; }).map(function(m){ return m[1]; });
+  document.getElementById('map-edit-title').textContent = '「'+wt[1]+'」の資材紐付けを編集';
+  document.getElementById('map-edit-mats').innerHTML =
+    state.mats.length===0 ? '<span style="color:var(--text-muted);font-size:13px">資材が登録されていません</span>'
+    : state.mats.map(function(m){
+        var chk = currentMats.includes(m[0]);
+        return '<label class="check-item'+(chk?' checked':'')+'" id="mec-l-'+m[0]+'">'
+          +'<input type="checkbox" value="'+m[0]+'"'+(chk?' checked':'')+' onchange="onMECChange(this)"> '+escH(m[1])+'</label>';
+      }).join('');
+  document.getElementById('map-edit-modal').style.display='block';
+}
+
+function onMECChange(el){
+  var l = document.getElementById('mec-l-'+el.value);
+  if(el.checked) l.classList.add('checked'); else l.classList.remove('checked');
+}
+
+function closeMapEditModal(){
+  document.getElementById('map-edit-modal').style.display='none';
+  _mapEditWtId = null;
+}
+
+function saveMapEdit(){
+  if(!_mapEditWtId) return;
+  var selectedMats = Array.from(document.querySelectorAll('#map-edit-mats input:checked')).map(function(i){ return i.value; });
+  // 既存の紐付けを削除して新しいものを追加
+  var allMappings = demoFetch('作業内容_資材').filter(function(m){ return m[0]!==_mapEditWtId; });
+  selectedMats.forEach(function(mid){ allMappings.push([_mapEditWtId, mid]); });
+  demoSave('作業内容_資材', allMappings);
+  closeMapEditModal();
+  load();
+  toast('紐付けを更新しました');
+}
+
+// ============================================================
+// 履歴表示
+// ============================================================
+function renderHistory(){
+  var filterMat  = document.getElementById('hist-filter-mat').value;
+  var filterType = document.getElementById('hist-filter-type').value;
+  var rows = state.history.slice().reverse().filter(function(r){
+    if(filterMat  && r[2]!==filterMat)  return false;
+    if(filterType && r[3]!==filterType) return false;
+    return true;
+  });
+  if(!rows.length){
+    document.getElementById('history-list').innerHTML='<div class="no-data">履歴がありません</div>';
+    return;
+  }
+  document.getElementById('history-list').innerHTML = rows.map(function(r){
+    var isPurchase = (r[3]==='購入');
+    var mat = state.mats.find(function(m){ return m[0]===r[2]; });
+    var matName = mat?mat[1]:(r[8]||r[2]||'');
+    var color = isPurchase ? 'var(--primary)' : 'var(--warning)';
+    var badge = isPurchase
+      ? '<span style="background:var(--secondary);color:var(--primary-dark);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">購入</span>'
+      : '<span style="background:var(--warning-bg);color:#b5541a;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">使用</span>';
+    var priceInfo = (r[5]||r[6]) ? '<small style="color:var(--text-muted)"> 単価:'+escH(String(r[5]||0))+'円 / 金額:'+escH(String(r[6]||0))+'円</small>' : '';
+    var note = r[7] ? '<br><small style="color:var(--text-muted)">📝 '+escH(r[7])+'</small>' : '';
+    return '<div class="diary-card" style="border-left-color:'+color+';display:flex;justify-content:space-between;align-items:flex-start;gap:8px">'
+      +'<div style="flex:1">'
+      +badge+' <b>'+escH(r[1]||'')+'</b> '+escH(matName)
+      +' <span style="font-weight:700;color:'+color+'">'+escH(String(r[4]||0))+(mat?escH(mat[2]||''):'')+'</span>'
+      +priceInfo+note+'</div>'
+      +'<button class="btn btn-secondary btn-sm" style="white-space:nowrap;flex-shrink:0" onclick="openHistoryEdit(\''+r[0]+'\')">編集</button>'
+      +'</div>';
+  }).join('');
+}
+
+// ============================================================
+// 履歴編集
+// ============================================================
+var _histEditId = null;
+
+function openHistoryEdit(id){
+  var entry = state.history.find(function(r){ return r[0]===id; });
+  if(!entry) return;
+  _histEditId = id;
+  document.getElementById('he-date').value  = entry[1]||'';
+  document.getElementById('he-type').value  = entry[3]||'購入';
+  document.getElementById('he-amt').value   = entry[4]||'';
+  document.getElementById('he-price').value = entry[5]||'';
+  document.getElementById('he-total').value = entry[6]||'';
+  document.getElementById('he-note').value  = entry[7]||'';
+  document.getElementById('he-mat').innerHTML =
+    state.mats.map(function(m){
+      return '<option value="'+m[0]+'"'+(m[0]===entry[2]?' selected':'')+'>'+escH(m[1])+'</option>';
+    }).join('');
+  document.getElementById('history-edit-modal').style.display='block';
+}
+
+function calcHETotal(){
+  var qty=parseFloat(document.getElementById('he-amt').value)||0;
+  var price=parseFloat(document.getElementById('he-price').value)||0;
+  document.getElementById('he-total').value=(qty&&price)?Math.round(qty*price):'';
+}
+
+function closeHistoryEditModal(){
+  document.getElementById('history-edit-modal').style.display='none';
+  _histEditId=null;
+}
+
+function saveHistoryEdit(){
+  if(!_histEditId) return;
+  var date  = document.getElementById('he-date').value;
+  var matId = document.getElementById('he-mat').value;
+  var type  = document.getElementById('he-type').value;
+  var amt   = parseFloat(document.getElementById('he-amt').value)||0;
+  var price = parseFloat(document.getElementById('he-price').value)||0;
+  var total = parseFloat(document.getElementById('he-total').value)||0;
+  var note  = document.getElementById('he-note').value.trim();
+  if(!date||!matId){ toast('日付と資材は必須です','error'); return; }
+  if(amt<=0){ toast('数量を入力してください','error'); return; }
+  showLoad();
+  try {
+    var orig = state.history.find(function(r){ return r[0]===_histEditId; });
+    var mat  = state.mats.find(function(m){ return m[0]===matId; });
+    var rawInv = demoFetch('在庫');
+    if(orig){
+      var origAmt=parseFloat(orig[4])||0, origType=orig[3], origMid=orig[2];
+      var oi=rawInv.findIndex(function(r){ return r[0]===origMid; });
+      if(oi>=0){
+        var cur=parseFloat(rawInv[oi][1])||0;
+        demoWriteRange('在庫',oi,1,[origType==='購入'?cur-origAmt:cur+origAmt]);
+        rawInv=demoFetch('在庫');
+      }
+    }
+    var data=demoFetch('入出庫');
+    var idx=data.findIndex(function(r){ return r[0]===_histEditId; });
+    if(idx<0){ toast('履歴が見つかりません','error'); hideLoad(); return; }
+    demoWriteRange('入出庫',idx,1,[date,matId,type,amt,price,total,note,mat?mat[1]:'']);
+    var ni=rawInv.findIndex(function(r){ return r[0]===matId; });
+    if(ni>=0){
+      var ncur=parseFloat(rawInv[ni][1])||0;
+      demoWriteRange('在庫',ni,1,[type==='購入'?ncur+amt:ncur-amt]);
+    }
+    closeHistoryEditModal();
+    load();
+    toast('履歴を更新しました');
+  } catch(e){ toast('更新エラー: '+e.message,'error'); }
+  hideLoad();
+}
+
+function deleteHistoryEntry(){
+  if(!_histEditId) return;
+  if(!confirm('この履歴を削除しますか？\n在庫数量も元に戻ります。')) return;
+  showLoad();
+  try {
+    var orig=state.history.find(function(r){ return r[0]===_histEditId; });
+    if(orig){
+      var origAmt=parseFloat(orig[4])||0, origType=orig[3], origMid=orig[2];
+      var rawInv=demoFetch('在庫');
+      var oi=rawInv.findIndex(function(r){ return r[0]===origMid; });
+      if(oi>=0){
+        var cur=parseFloat(rawInv[oi][1])||0;
+        demoWriteRange('在庫',oi,1,[origType==='購入'?cur-origAmt:cur+origAmt]);
+      }
+    }
+    demoDeleteById('入出庫', _histEditId);
+    closeHistoryEditModal();
+    load();
+    toast('履歴を削除しました');
+  } catch(e){ toast('削除エラー: '+e.message,'error'); }
+  hideLoad();
+}
+</script>
+</body>
+</html>
