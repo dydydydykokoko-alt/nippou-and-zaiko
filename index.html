@@ -114,6 +114,27 @@ body {
 .diary-card small { color: var(--text-muted); font-size: 12px; }
 .toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%); padding:12px 22px; border-radius:8px; color:#fff; font-size:14px; font-weight:600; z-index:9999; box-shadow:0 4px 16px rgba(0,0,0,.2); white-space:nowrap; }
 .no-data { text-align:center; padding:24px; color:var(--text-muted); font-size:13px; }
+.voice-input-wrap { position: relative; }
+.voice-btn {
+  position: absolute; top: 8px; right: 8px; width: 34px; height: 34px; border-radius: 50%;
+  border: 1.5px solid var(--border); background: white; font-size: 16px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; padding: 0; z-index: 2; line-height: 1;
+}
+.voice-btn.listening { background: var(--danger); border-color: var(--danger); color: white; animation: voice-pulse 1.2s infinite; }
+.voice-suggest { margin-top: 8px; display: none; }
+.voice-suggest-label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+.voice-suggest-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.voice-chip {
+  display: inline-flex; align-items: center; gap: 4px; padding: 7px 14px; border-radius: 18px;
+  border: 1.5px solid var(--accent); background: var(--secondary); color: var(--primary-dark);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.voice-chip:disabled { opacity: 0.5; cursor: default; border-color: var(--border); background: var(--bg); color: var(--text-muted); }
+@keyframes voice-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(230,57,70,0.5); }
+  70%  { box-shadow: 0 0 0 10px rgba(230,57,70,0); }
+  100% { box-shadow: 0 0 0 0 rgba(230,57,70,0); }
+}
 @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
@@ -195,14 +216,25 @@ body {
       </div>
       <div id="dur-display" style="text-align:center;font-size:13px;color:var(--primary);font-weight:600;margin-top:6px"></div>
     </div>
-    <div class="form-group"><label class="form-label">備考</label><textarea id="d-notes" class="form-control"></textarea></div>
     <div class="form-group">
-      <label class="form-label">📷 写真撮影</label>
+      <label class="form-label">備考</label>
+      <div class="voice-input-wrap">
+        <textarea id="d-notes" class="form-control" style="padding-right:44px"></textarea>
+        <button type="button" class="voice-btn" onclick="toggleVoiceInput('d-notes', this)" title="音声入力">🎤</button>
+      </div>
+      <div id="voice-suggest-d" class="voice-suggest"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">📷 写真</label>
       <div class="img-upload-area">
-        <button class="btn btn-secondary" onclick="document.getElementById('camera-f').click()">📷 撮影</button>
+        <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+          <button class="btn btn-secondary" onclick="document.getElementById('camera-f').click()">📷 撮影</button>
+          <button class="btn btn-secondary" onclick="document.getElementById('gallery-f').click()">🖼️ アルバムから選択</button>
+        </div>
         <div class="img-previews" id="img-pre"></div>
       </div>
       <input type="file" id="camera-f" accept="image/*" capture="environment" style="display:none" onchange="onFile(this)">
+      <input type="file" id="gallery-f" accept="image/*" multiple style="display:none" onchange="onFile(this)">
     </div>
     <div style="display:flex;gap:10px">
       <button class="btn btn-primary" style="flex:1" onclick="saveDiary()">💾 保存</button>
@@ -446,14 +478,25 @@ body {
         <input type="time" id="de-end" class="form-control" placeholder="終了">
       </div>
     </div>
-    <div class="form-group"><label class="form-label">備考</label><textarea id="de-notes" class="form-control" rows="3"></textarea></div>
+    <div class="form-group">
+      <label class="form-label">備考</label>
+      <div class="voice-input-wrap">
+        <textarea id="de-notes" class="form-control" rows="3" style="padding-right:44px"></textarea>
+        <button type="button" class="voice-btn" onclick="toggleVoiceInput('de-notes', this)" title="音声入力">🎤</button>
+      </div>
+      <div id="voice-suggest-de" class="voice-suggest"></div>
+    </div>
     <div class="form-group">
       <label class="form-label">📷 写真</label>
       <div class="img-upload-area">
-        <button class="btn btn-secondary" onclick="document.getElementById('de-camera').click()">📷 追加</button>
+        <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+          <button class="btn btn-secondary" onclick="document.getElementById('de-camera').click()">📷 撮影</button>
+          <button class="btn btn-secondary" onclick="document.getElementById('de-gallery').click()">🖼️ アルバムから選択</button>
+        </div>
         <div class="img-previews" id="de-img-pre"></div>
       </div>
       <input type="file" id="de-camera" accept="image/*" capture="environment" style="display:none" onchange="onDEFile(this)">
+      <input type="file" id="de-gallery" accept="image/*" multiple style="display:none" onchange="onDEFile(this)">
     </div>
     <div style="display:flex;gap:8px;margin-top:16px">
       <button class="btn btn-primary" style="flex:1" onclick="saveDiaryEdit()">💾 保存</button>
@@ -1002,6 +1045,7 @@ function onFile(inp){
     r.onload=function(e){ compressImage(e.target.result, function(d){ images.push(d); renderI(); }); };
     r.readAsDataURL(f);
   });
+  inp.value='';
 }
 function renderI(){
   document.getElementById('img-pre').innerHTML = images.map(function(img,i){
@@ -1018,12 +1062,177 @@ function onDEFile(inp){
     r.onload=function(e){ compressImage(e.target.result, function(d){ editImages.push(d); renderDEI(); }); };
     r.readAsDataURL(f);
   });
+  inp.value='';
 }
 function renderDEI(){
   document.getElementById('de-img-pre').innerHTML = editImages.map(function(img,i){
     return '<div class="img-preview-item"><img src="'+img+'">'
       +'<button class="img-remove" onclick="editImages.splice('+i+',1);renderDEI()">✕</button></div>';
   }).join('');
+}
+
+// ============================================================
+// 音声入力（Web Speech API）
+// ============================================================
+var _voiceRecognition = null;
+var _voiceActiveField = null;
+var _voiceBaseText = '';
+var _voiceFinalText = '';
+
+var VOICE_FORM_MAP = {
+  'd-notes':  { suggestId: 'voice-suggest-d',  prefix: 'd',  weather: true  },
+  'de-notes': { suggestId: 'voice-suggest-de', prefix: 'de', weather: false }
+};
+var WEATHER_OPTIONS = [
+  {value:'晴れのち雨', icon:'🌦️'},
+  {value:'雨のち晴れ', icon:'🌤️'},
+  {value:'晴れ', icon:'☀️'},
+  {value:'曇り', icon:'⛅'},
+  {value:'雨',   icon:'🌧️'},
+  {value:'雪',   icon:'❄️'},
+  {value:'強風', icon:'🌬️'}
+];
+
+function getSpeechRecognitionCtor(){
+  return window.SpeechRecognition || window.webkitSpeechRecognition || null;
+}
+
+function toggleVoiceInput(textareaId, btnEl){
+  var Ctor = getSpeechRecognitionCtor();
+  if(!Ctor){ toast('このブラウザは音声入力に対応していません','error'); return; }
+
+  // 同じ欄をタップ→停止
+  if(_voiceRecognition && _voiceActiveField === textareaId){
+    stopVoiceInput();
+    return;
+  }
+  // 他の欄で録音中なら先に停止してから開始
+  if(_voiceRecognition) stopVoiceInput();
+
+  var ta = document.getElementById(textareaId);
+  _voiceBaseText = ta.value;
+  _voiceFinalText = '';
+  _voiceActiveField = textareaId;
+  hideVoiceSuggestions(textareaId);
+
+  var rec = new Ctor();
+  rec.lang = 'ja-JP';
+  rec.continuous = true;
+  rec.interimResults = true;
+
+  rec.onresult = function(e){
+    var finalText = '', interimText = '';
+    for(var i=0; i<e.results.length; i++){
+      var r = e.results[i];
+      if(r.isFinal) finalText += r[0].transcript;
+      else interimText += r[0].transcript;
+    }
+    _voiceFinalText = finalText;
+    var sep = (_voiceBaseText && !/[\s、。]$/.test(_voiceBaseText)) ? ' ' : '';
+    ta.value = _voiceBaseText + sep + finalText + interimText;
+  };
+  rec.onerror = function(e){
+    if(e.error === 'no-speech' || e.error === 'aborted') return;
+    toast('音声入力エラー: '+e.error, 'error');
+    stopVoiceInput();
+  };
+  rec.onend = function(){
+    // 無音などで自動終了した場合、ユーザーが停止していなければ録音を継続する
+    if(_voiceRecognition === rec){
+      try { rec.start(); } catch(e){ stopVoiceInput(); }
+    }
+  };
+
+  _voiceRecognition = rec;
+  btnEl.classList.add('listening');
+  btnEl.textContent = '⏹';
+  try {
+    rec.start();
+  } catch(e){
+    toast('音声入力を開始できませんでした','error');
+    stopVoiceInput();
+  }
+}
+
+function stopVoiceInput(){
+  var finishedField = _voiceActiveField;
+  var finalText = _voiceFinalText;
+  if(_voiceRecognition){
+    var rec = _voiceRecognition;
+    _voiceRecognition = null; // 先にnull化してonendでの自動再開を防ぐ
+    try { rec.stop(); } catch(e){}
+  }
+  document.querySelectorAll('.voice-btn.listening').forEach(function(b){
+    b.classList.remove('listening');
+    b.textContent = '🎤';
+  });
+  _voiceActiveField = null;
+  if(finishedField && finalText.trim()) showVoiceSuggestions(finishedField, finalText);
+}
+
+// ============================================================
+// 音声認識テキスト → 圃場・作業内容・天気の候補チップ
+// ============================================================
+function matchVoiceEntities(text){
+  var fields = state.fields.filter(function(f){ return f[1] && text.indexOf(f[1]) >= 0; })
+    .sort(function(a,b){ return text.indexOf(a[1]) - text.indexOf(b[1]); });
+  var wts = state.wts.filter(function(w){ return w[1] && text.indexOf(w[1]) >= 0; })
+    .sort(function(a,b){ return text.indexOf(a[1]) - text.indexOf(b[1]); });
+  var weatherCandidates = WEATHER_OPTIONS.filter(function(o){ return text.indexOf(o.value) >= 0; });
+  var weather = weatherCandidates.length ? weatherCandidates[0] : null; // 複合表現を先に判定済みなので先頭が最も具体的
+  return { fields: fields, wts: wts, weather: weather };
+}
+
+function hideVoiceSuggestions(textareaId){
+  var conf = VOICE_FORM_MAP[textareaId];
+  if(!conf) return;
+  var el = document.getElementById(conf.suggestId);
+  if(el){ el.style.display = 'none'; el.innerHTML = ''; }
+}
+
+function showVoiceSuggestions(textareaId, text){
+  var conf = VOICE_FORM_MAP[textareaId];
+  if(!conf) return;
+  var el = document.getElementById(conf.suggestId);
+  if(!el) return;
+  var m = matchVoiceEntities(text);
+  var chips = [];
+  m.fields.forEach(function(f){
+    chips.push('<button type="button" class="voice-chip" data-fid="'+f[0]+'" onclick="applyVoiceField(this,\''+conf.prefix+'\')">🌾 '+escH(f[1])+'</button>');
+  });
+  m.wts.forEach(function(w){
+    chips.push('<button type="button" class="voice-chip" data-wid="'+w[0]+'" onclick="applyVoiceWt(this,\''+conf.prefix+'\')">🔧 '+escH(w[1])+'</button>');
+  });
+  if(conf.weather && m.weather){
+    chips.push('<button type="button" class="voice-chip" data-weather="'+escH(m.weather.value)+'" onclick="applyVoiceWeather(this)">'+m.weather.icon+' '+escH(m.weather.value)+'</button>');
+  }
+  if(!chips.length){ el.style.display='none'; el.innerHTML=''; return; }
+  el.innerHTML = '<div class="voice-suggest-label">🎤 認識候補（タップで反映）</div>'
+    + '<div class="voice-suggest-chips">'+chips.join('')+'</div>';
+  el.style.display = 'block';
+}
+
+function applyVoiceField(btn, prefix){
+  var sel = document.getElementById(prefix+'-field');
+  if(sel) sel.value = btn.getAttribute('data-fid');
+  btn.disabled = true;
+}
+
+function applyVoiceWt(btn, prefix){
+  var id = btn.getAttribute('data-wid');
+  var cb = document.querySelector('#'+prefix+'-wt-list input[value="'+id+'"]');
+  if(cb && !cb.checked){
+    cb.checked = true;
+    if(prefix === 'd') onWTC(cb); else onDEWTC(cb);
+  }
+  btn.disabled = true;
+}
+
+function applyVoiceWeather(btn){
+  var val = btn.getAttribute('data-weather');
+  var radio = document.querySelector('input[name="d-weather"][value="'+val+'"]');
+  if(radio){ radio.checked = true; onWeatherChange(); }
+  btn.disabled = true;
 }
 
 // ============================================================
@@ -1044,6 +1253,8 @@ function calcDur(){
 // 日報リセット
 // ============================================================
 function resetDiary(){
+  stopVoiceInput();
+  hideVoiceSuggestions('d-notes');
   images=[]; renderI();
   document.getElementById('d-notes').value='';
   document.getElementById('d-date').value=new Date().toISOString().split('T')[0];
@@ -1367,6 +1578,7 @@ function openDiaryEdit(id){
   var entry = state.diary.find(function(d){ return d[0]===id; });
   if(!entry) return;
   _diaryEditId = id;
+  hideVoiceSuggestions('de-notes');
 
   // 圃場セレクト
   document.getElementById('de-field').innerHTML =
@@ -1432,6 +1644,8 @@ function onDEWTC(el){
 }
 
 function closeDiaryEditModal(){
+  stopVoiceInput();
+  hideVoiceSuggestions('de-notes');
   document.getElementById('diary-edit-modal').style.display='none';
   _diaryEditId=null;
   editImages=[];
