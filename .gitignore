@@ -1,2 +1,11 @@
 server/node_modules/
 server/.env
+
+# 作業用フォルダ（個人のメールアドレスを含むため公開しない）
+坂田さん用/
+テスト用/
+テスト２/
+line入力/
+音声入力/
+.claude/
+.DS_Store
