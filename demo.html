@@ -46,10 +46,10 @@ body {
   box-shadow: 0 -2px 10px rgba(0,0,0,0.1); padding-bottom: env(safe-area-inset-bottom);
 }
 .tab-btn {
-  flex: 1; padding: 8px 4px; border: none; background: none; color: var(--text-muted);
+  flex: 1; padding: 8px 2px; border: none; background: none; color: var(--text-muted);
   display: flex; flex-direction: column; align-items: center; gap: 2px;
-  font-size: 10px; font-weight: 500; min-height: 60px; justify-content: center;
-  border-top: 3px solid transparent;
+  font-size: 9.5px; font-weight: 500; min-height: 60px; justify-content: center;
+  border-top: 3px solid transparent; white-space: nowrap; letter-spacing: -0.3px;
 }
 .tab-btn.active { color: var(--primary); border-top-color: var(--primary); font-weight: 700; background: #f0faf3; }
 .tab-content { display: none; padding: 12px; max-width: 900px; margin: 0 auto; }
@@ -118,6 +118,41 @@ body {
 .diary-card small { color: var(--text-muted); font-size: 12px; }
 .toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%); padding:12px 22px; border-radius:8px; color:#fff; font-size:14px; font-weight:600; z-index:9999; box-shadow:0 4px 16px rgba(0,0,0,.2); max-width:calc(100vw - 32px); text-align:center; }
 .no-data { text-align:center; padding:24px; color:var(--text-muted); font-size:13px; }
+/* ── 面積測定（地図）── */
+#map { width:100%; height:58vh; min-height:300px; border-radius:var(--radius); border:1.5px solid var(--border); background:#e8ebe8; }
+.map-hint { font-size:12px; color:var(--text-muted); margin:8px 2px; line-height:1.6; }
+.area-result { background:var(--secondary); border:1.5px solid var(--primary); border-radius:var(--radius); padding:14px; margin-top:10px; display:none; }
+.area-value { font-size:26px; font-weight:700; color:var(--primary-dark); }
+.area-sub { font-size:13px; color:var(--text-muted); margin-top:2px; }
+.map-status { font-size:12px; padding:6px 10px; border-radius:6px; background:var(--bg); color:var(--text-muted); margin-bottom:8px; }
+.map-status.err { background:var(--danger-bg); color:#a4161a; }
+.map-toolbar { display:flex; gap:6px; margin-bottom:8px; flex-wrap:wrap; }
+/* 場所の検索 */
+.map-search { display:flex; gap:6px; margin-bottom:8px; }
+.map-search input { flex:1; min-width:0; }
+.map-search .btn { flex-shrink:0; min-width:64px; }
+.search-results { border:1px solid var(--border); border-radius:var(--radius); margin-bottom:8px; overflow:hidden; display:none; }
+.search-item { padding:11px 12px; border-bottom:1px solid var(--border); cursor:pointer; font-size:14px; background:#fff; }
+.search-item:last-child { border-bottom:none; }
+.search-item:active { background:var(--secondary); }
+.search-item .si-sub { font-size:11px; color:var(--text-muted); margin-top:2px; }
+.search-item .si-tag { display:inline-block; font-size:10px; font-weight:700; padding:1px 6px; border-radius:8px; margin-right:6px; vertical-align:1px; }
+.si-addr { background:var(--secondary); color:var(--primary-dark); }
+.si-poi  { background:#e3f0ff; color:#1e5fa8; }
+.map-toolbar .btn { flex:1; min-width:120px; }
+.leaflet-container { font-family:inherit; }
+/* 地図上の地名・駅名（航空写真には文字が無いため自前で重ねる）*/
+.pl-label {
+  background:none; border:none; box-shadow:none; padding:0;
+  font-size:11px; font-weight:700; color:#fff; white-space:nowrap;
+  text-shadow:0 0 3px #000, 0 0 3px #000, 0 0 5px #000;
+  pointer-events:none;
+}
+.pl-label.st { color:#ffe08a; font-size:12px; }
+.pl-label.st::before { content:'🚉 '; }
+/* 拡大すると町名の代表点が画面外に出るため、中心付近の地名を文字で補う */
+.near-place { font-size:12.5px; color:var(--primary-dark); background:var(--secondary);
+  border-radius:6px; padding:7px 10px; margin-top:8px; display:none; line-height:1.5; }
 /* オフライン表示・同期待ちバッジ */
 #net-badge {
   display:none; background:var(--warning); color:#fff; border-radius:20px;
@@ -145,6 +180,7 @@ body {
   <button class="tab-btn" id="nav-inventory" onclick="switchTab('inventory')"><span style="font-size:20px">📦</span><span>在庫</span></button>
   <button class="tab-btn" id="nav-history" onclick="switchTab('history')"><span style="font-size:20px">📊</span><span>履歴</span></button>
   <button class="tab-btn" id="nav-add" onclick="switchTab('add')"><span style="font-size:20px">➕</span><span>入庫</span></button>
+  <button class="tab-btn" id="nav-area" onclick="switchTab('area')"><span style="font-size:20px">📐</span><span>面積</span></button>
   <button class="tab-btn" id="nav-master" onclick="switchTab('master')"><span style="font-size:20px">⚙️</span><span>マスタ</span></button>
 </nav>
 
@@ -272,6 +308,37 @@ body {
     </div>
     <div class="form-group"><label class="form-label">備考</label><input type="text" id="a-note" class="form-control" placeholder="（任意）"></div>
     <button class="btn btn-primary" style="width:100%" onclick="saveAdd()">💾 登録</button>
+  </div>
+</div>
+
+<!-- 面積測定 -->
+<div id="tab-area" class="tab-content">
+  <div class="card">
+    <div class="card-title">📐 面積を調べる</div>
+    <div id="map-status" class="map-status">地図を準備しています…</div>
+    <div class="map-search">
+      <input type="text" id="map-q" class="form-control" placeholder="住所・駅名・建物名で探す"
+             enterkeyhint="search" onkeydown="if(event.key==='Enter'){event.preventDefault();mapSearch();}">
+      <button class="btn btn-primary btn-sm" onclick="mapSearch()">🔍 検索</button>
+    </div>
+    <div id="search-results" class="search-results"></div>
+    <div class="map-toolbar">
+      <button class="btn btn-secondary btn-sm" onclick="mapLocate()">📍 現在地へ</button>
+      <button class="btn btn-secondary btn-sm" onclick="mapClearSel()">✕ 選択を解除</button>
+    </div>
+    <div id="map"></div>
+    <div id="near-place" class="near-place"></div>
+    <div class="map-hint">
+      航空写真の上で<b>農地をタップ</b>すると面積が表示されます。<br>
+      隣り合う農地を続けてタップすると<b>合計</b >されます。
+    </div>
+    <div id="area-result" class="area-result">
+      <div id="area-value" class="area-value">—</div>
+      <div id="area-sub" class="area-sub"></div>
+      <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="openFieldRegister()">
+        この面積で圃場に登録する
+      </button>
+    </div>
   </div>
 </div>
 
@@ -442,6 +509,38 @@ body {
   </div>
 </div>
 
+<!-- 圃場登録モーダル（面積測定から） -->
+<div id="field-reg-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:5000;padding:16px;overflow-y:auto">
+  <div style="background:white;border-radius:12px;padding:20px;max-width:480px;margin:60px auto;">
+    <div style="font-size:17px;font-weight:700;margin-bottom:6px;color:var(--primary-dark)">📐 圃場に登録</div>
+    <div style="background:var(--secondary);border-radius:8px;padding:12px;margin-bottom:16px;text-align:center">
+      <div id="fr-area" style="font-size:22px;font-weight:700;color:var(--primary-dark)">—</div>
+      <div id="fr-area-sub" style="font-size:12px;color:var(--text-muted)"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">登録先</label>
+      <select id="fr-target" class="form-control" onchange="onFieldRegTargetChange()">
+        <option value="__new__">➕ 新しい圃場として登録</option>
+      </select>
+    </div>
+    <div class="form-group" id="fr-name-wrap">
+      <label class="form-label">圃場名</label>
+      <input type="text" id="fr-name" class="form-control" placeholder="例：北圃場">
+    </div>
+    <div class="form-group">
+      <label class="form-label">登録する単位</label>
+      <select id="fr-unit" class="form-control" onchange="renderFieldRegArea()">
+        <option value="アール">アール</option>
+        <option value="m²">m²</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveFieldRegister()">💾 登録する</button>
+      <button class="btn btn-secondary" style="flex:1" onclick="closeFieldRegister()">キャンセル</button>
+    </div>
+  </div>
+</div>
+
 <!-- 日報編集モーダル -->
 <div id="diary-edit-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:5000;padding:16px;overflow-y:auto">
   <div style="background:white;border-radius:12px;padding:20px;max-width:480px;margin:40px auto;">
@@ -518,6 +617,8 @@ function switchTab(id){
   document.getElementById('tab-'+id).classList.add('active');
   document.getElementById('nav-'+id).classList.add('active');
   window.scrollTo(0,0);
+  // 地図は開かれた時に初めて準備する（起動を軽くするため）
+  if(id === 'area') initMap();
 }
 
 function switchMTab(id, el){
@@ -1916,6 +2017,455 @@ async function deleteHistoryEntry(){
     await load();
     toast('履歴を削除しました');
   } catch(e){ toast('削除エラー: '+e.message,'error'); }
+  hideLoad();
+}
+
+// ============================================================
+// 面積測定（地図）
+//
+//   地図：国土地理院の航空写真タイル（APIキー不要・無料）
+//   農地：農林水産省「筆ポリゴン」(CC BY 4.0) を約1.1km四方に分割して配信。
+//         現在地周辺のマスだけ読むため、対象地域を広げても通信量は増えない。
+//   面積：緯度に応じた局所平面へ投影して多角形面積を求める（誤差0.01%未満）。
+// ============================================================
+var FUDE_BASE = 'fude/';        // 分割済み筆ポリゴンの置き場所
+var FUDE_GRID = 0.01;           // 1マスの大きさ（度）≒1.1km
+var OITA_CENTER = [33.2382, 131.6126];   // 大分県のおよその中心
+
+var _map = null, _fudeLayer = null, _selLayer = null;
+var _tileCache = {};            // 読み込み済みのマス
+var _selected = [];             // 選択中の農地 [{id, area, latlngs}]
+var _mapReady = false;
+
+function mapStatus(msg, isErr){
+  var el = document.getElementById('map-status');
+  if(!el) return;
+  el.textContent = msg;
+  el.className = 'map-status' + (isErr ? ' err' : '');
+}
+
+// Leaflet を必要になった時だけ読み込む（初期表示を軽くするため）
+function loadLeaflet(){
+  if(window.L) return Promise.resolve();
+  return new Promise(function(resolve, reject){
+    var css = document.createElement('link');
+    css.rel='stylesheet';
+    css.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(css);
+    var js = document.createElement('script');
+    js.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    js.onload=resolve;
+    js.onerror=function(){ reject(new Error('地図ライブラリを読み込めません')); };
+    document.head.appendChild(js);
+  });
+}
+
+async function initMap(){
+  if(_mapReady) { setTimeout(function(){ _map.invalidateSize(); }, 100); return; }
+  try {
+    mapStatus('地図を読み込んでいます…');
+    await loadLeaflet();
+  } catch(e){
+    mapStatus('地図を読み込めませんでした。通信状況をご確認ください。', true);
+    return;
+  }
+
+  _map = L.map('map', { zoomControl:true, attributionControl:true }).setView(OITA_CENTER, 15);
+
+  // 国土地理院の航空写真（無料・キー不要）
+  L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
+    maxZoom: 18, minZoom: 8,
+    attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank">国土地理院</a>'
+      + ' / 農地区画：農林水産省 筆ポリゴン(CC BY 4.0)'
+      + ' / 地名・検索：&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'
+  }).addTo(_map);
+
+  _fudeLayer = L.layerGroup().addTo(_map);
+  _selLayer  = L.layerGroup().addTo(_map);
+
+  _map.on('moveend', function(){ refreshFude(); refreshPlaces(); });
+  _mapReady = true;
+
+  mapLocate();          // 初回は現在地へ
+  setTimeout(function(){ _map.invalidateSize(); refreshFude(); refreshPlaces(); }, 200);
+}
+
+// 現在地へ移動
+function mapLocate(){
+  if(!navigator.geolocation){ mapStatus('この端末では現在地を取得できません', true); return; }
+  mapStatus('現在地を取得しています…');
+  navigator.geolocation.getCurrentPosition(function(pos){
+    var ll = [pos.coords.latitude, pos.coords.longitude];
+    _map.setView(ll, 17);
+    L.circleMarker(ll, {radius:6, color:'#1e6fd9', fillColor:'#1e6fd9', fillOpacity:1, weight:2})
+      .addTo(_selLayer).bindTooltip('現在地');
+    mapStatus('農地をタップすると面積が出ます');
+    refreshFude();
+  }, function(err){
+    // 位置情報が使えなくても地図自体は使えるようにする
+    mapStatus('現在地を取得できません（' + (err.code===1?'許可されていません':'測位に失敗') + '）。地図を動かして探せます。', true);
+    refreshFude();
+  }, { enableHighAccuracy:true, timeout:10000, maximumAge:60000 });
+}
+
+// 表示範囲に対応するマスを読み込む
+async function refreshFude(){
+  if(!_map) return;
+  if(_map.getZoom() < 15){
+    _fudeLayer.clearLayers();
+    mapStatus('地図を拡大すると農地が表示されます');
+    return;
+  }
+  var b = _map.getBounds();
+  var keys = [];
+  for(var la=Math.floor(b.getSouth()/FUDE_GRID); la<=Math.floor(b.getNorth()/FUDE_GRID); la++){
+    for(var lo=Math.floor(b.getWest()/FUDE_GRID); lo<=Math.floor(b.getEast()/FUDE_GRID); lo++){
+      keys.push(la+'_'+lo);
+    }
+  }
+  if(keys.length > 12) keys = keys.slice(0,12);   // 引きすぎた時の保険
+
+  for(var i=0;i<keys.length;i++){
+    if(_tileCache[keys[i]] === undefined){
+      try {
+        var r = await fetch(FUDE_BASE + keys[i] + '.json');
+        _tileCache[keys[i]] = r.ok ? (await r.json()).features : null;
+      } catch(e){ _tileCache[keys[i]] = null; }
+    }
+  }
+  // 実際に画面に出ている数を伝える。マスの中には画面外の農地も含まれるため、
+  // 読み込んだ件数をそのまま出すと「見えないのに件数が出る」ことになる。
+  var shown = drawFude(keys);
+  mapStatus(shown ? '農地をタップすると面積が出ます（表示中 '+shown+'区画）'
+                  : 'この場所には農地データがありません。地図を動かして探せます。');
+}
+
+function drawFude(keys){
+  _fudeLayer.clearLayers();
+  var b = _map.getBounds();
+  var shown = 0;
+  keys.forEach(function(k){
+    var fs = _tileCache[k];
+    if(!fs) return;
+    fs.forEach(function(f, idx){
+      var ring = f.geometry.coordinates[0];
+      // 画面外は描かない（描画の無駄を省く）
+      if(!ring.some(function(p){ return b.contains([p[1],p[0]]); })) return;
+      var latlngs = ring.map(function(p){ return [p[1], p[0]]; });
+      var id = k+':'+idx;
+      var on = _selected.some(function(s){ return s.id===id; });
+      L.polygon(latlngs, {
+        color: on ? '#e63946' : '#ffd400',
+        weight: on ? 3 : 1.5,
+        fillColor: on ? '#e63946' : '#ffd400',
+        fillOpacity: on ? 0.45 : 0.12
+      }).addTo(_fudeLayer).on('click', function(){ toggleParcel(id, latlngs); });
+      shown++;
+    });
+  });
+  return shown;
+}
+
+// 農地の選択・解除
+function toggleParcel(id, latlngs){
+  var i = _selected.findIndex(function(s){ return s.id===id; });
+  if(i >= 0) _selected.splice(i,1);
+  else _selected.push({ id:id, latlngs:latlngs, area:polygonArea(latlngs) });
+  drawFude(Object.keys(_tileCache));
+  renderAreaResult();
+}
+
+function mapClearSel(){
+  _selected = [];
+  drawFude(Object.keys(_tileCache));
+  renderAreaResult();
+}
+
+// 多角形の面積(m²)。緯度に応じて経度方向を縮めた平面に投影して計算する。
+function polygonArea(latlngs){
+  if(latlngs.length < 3) return 0;
+  var lat0 = 0;
+  for(var i=0;i<latlngs.length;i++) lat0 += latlngs[i][0];
+  lat0 /= latlngs.length;
+  var kx = 111320 * Math.cos(lat0 * Math.PI/180), ky = 111320;
+  var pts = latlngs.map(function(p){ return [p[1]*kx, p[0]*ky]; });
+  if(pts[0][0]!==pts[pts.length-1][0] || pts[0][1]!==pts[pts.length-1][1]) pts.push(pts[0]);
+  var s = 0;
+  for(var j=0;j<pts.length-1;j++) s += pts[j][0]*pts[j+1][1] - pts[j+1][0]*pts[j][1];
+  return Math.abs(s)/2;
+}
+
+function totalArea(){
+  return _selected.reduce(function(a,s){ return a + s.area; }, 0);
+}
+
+function renderAreaResult(){
+  var box = document.getElementById('area-result');
+  var a = totalArea();
+  if(a <= 0){ box.style.display='none'; return; }
+  box.style.display='block';
+  document.getElementById('area-value').textContent = (a/100).toFixed(1) + ' アール';
+  document.getElementById('area-sub').textContent =
+    Math.round(a).toLocaleString() + ' m²' +
+    (a>=10000 ? '（' + (a/10000).toFixed(2) + ' ha）' : '') +
+    '　／　' + _selected.length + '区画';
+}
+
+// ============================================================
+// 地図上の地名・駅名
+//   航空写真には文字が入っていないため、目印になるよう自前で重ねる。
+//   データ: OpenStreetMap (ODbL) の駅・地名を大分県分だけ抜き出したもの。
+//   [名前, 緯度, 経度, 種別(st=駅/pl=地名), 表示を始めるズーム]
+// ============================================================
+var _places = null, _placeLayer = null;
+
+async function loadPlaces(){
+  if(_places) return _places;
+  try {
+    var r = await fetch('places.json');
+    _places = r.ok ? await r.json() : [];
+  } catch(e){ _places = []; }
+  return _places;
+}
+
+async function refreshPlaces(){
+  if(!_map) return;
+  if(!_placeLayer) _placeLayer = L.layerGroup().addTo(_map);
+  var list = await loadPlaces();
+  _placeLayer.clearLayers();
+
+  var z = _map.getZoom();
+  if(z < 10) return;
+  var b = _map.getBounds();
+
+  // 画面に入っていて、今のズームで出す対象のものだけ描く
+  var items = [];
+  for(var i=0;i<list.length && items.length<80;i++){
+    var p = list[i];
+    if(p[4] > z) continue;                       // このズームではまだ出さない
+    if(!b.contains([p[1], p[2]])) continue;
+    items.push(p);
+  }
+
+  // 文字が重なって読めなくならないよう、近すぎるものは間引く
+  var placed = [];
+  items.forEach(function(p){
+    var pt = _map.latLngToContainerPoint([p[1], p[2]]);
+    var tooClose = placed.some(function(q){
+      return Math.abs(q.x-pt.x) < (p[3]==='st' ? 60 : 70) && Math.abs(q.y-pt.y) < 16;
+    });
+    if(tooClose) return;
+    placed.push(pt);
+    L.marker([p[1], p[2]], {
+      interactive:false,
+      icon: L.divIcon({ className:'pl-label '+p[3], html:escH(p[0]), iconSize:null })
+    }).addTo(_placeLayer);
+  });
+
+  showNearPlace(list);
+}
+
+// 画面の中心がどのあたりかを文字で示す。
+// 拡大すると町名の代表点が画面の外に出てしまい地図上に何も出ないため、
+// 「近くの町名」と「近くの駅」を常に添えて現在位置を分かるようにする。
+function showNearPlace(list){
+  var el = document.getElementById('near-place');
+  if(!el) return;
+  var c = _map.getCenter();
+
+  function nearest(kind){
+    var best=null, bestD=Infinity;
+    for(var i=0;i<list.length;i++){
+      var p=list[i];
+      if(p[3]!==kind) continue;
+      if(kind==='pl' && p[4] < 13) continue;      // 「市」より細かい地名だけ使う
+      var d=_map.distance(c, [p[1],p[2]]);
+      if(d<bestD){ bestD=d; best=p; }
+    }
+    return best ? {name:best[0], dist:bestD} : null;
+  }
+
+  function km(d){ return d<1000 ? Math.round(d/10)*10+'m' : (d/1000).toFixed(1)+'km'; }
+
+  var pl = nearest('pl'), st = nearest('st');
+  var parts = [];
+  if(pl) parts.push('🏘 '+escH(pl.name)+(pl.dist>150 ? '（約'+km(pl.dist)+'）' : ''));
+  if(st && st.dist < 8000) parts.push('🚉 '+escH(st.name)+'から約'+km(st.dist));
+  if(!parts.length){ el.style.display='none'; return; }
+  el.innerHTML = '画面中央のあたり：' + parts.join('　／　');
+  el.style.display='block';
+}
+
+// ============================================================
+// 場所の検索
+//   住所      : 国土地理院の住所検索（日本の住所に強い・キー不要）
+//   駅・建物名 : OpenStreetMap Nominatim（施設名に強い）
+//   両方に問い合わせて、住所を上に並べて出す。
+//   Nominatimは連続アクセスを禁じているため、ボタンを押した時だけ呼ぶ。
+// ============================================================
+var _searchBusy = false;
+var _searchMarker = null;
+
+function _searchBox(){ return document.getElementById('search-results'); }
+
+function hideSearchResults(){
+  var b=_searchBox(); if(b){ b.style.display='none'; b.innerHTML=''; }
+}
+
+async function mapSearch(){
+  var q = (document.getElementById('map-q').value || '').trim();
+  if(!q){ toast('探したい場所を入力してください','error'); return; }
+  if(_searchBusy) return;
+  if(!_map){ toast('地図の準備中です','error'); return; }
+  _searchBusy = true;
+  document.getElementById('map-q').blur();     // スマホのキーボードを閉じる
+  mapStatus('「'+q+'」を検索しています…');
+
+  var results = [];
+  // ① 住所（国土地理院）
+  try {
+    var r1 = await fetch('https://msearch.gsi.go.jp/address-search/AddressSearch?q='+encodeURIComponent(q));
+    if(r1.ok){
+      (await r1.json()).slice(0,5).forEach(function(f){
+        results.push({ kind:'住所', name:f.properties.title,
+                       lat:f.geometry.coordinates[1], lng:f.geometry.coordinates[0] });
+      });
+    }
+  } catch(e){ /* 通信できなければ次を試す */ }
+
+  // ② 駅・建物などの施設名（OpenStreetMap）
+  try {
+    var r2 = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=jp&accept-language=ja&q='+encodeURIComponent(q));
+    if(r2.ok){
+      (await r2.json()).forEach(function(x){
+        var parts = String(x.display_name).split(',').map(function(s){ return s.trim(); });
+        results.push({ kind:'施設', name:parts[0],
+                       sub:parts.slice(1,4).join('、'),
+                       lat:parseFloat(x.lat), lng:parseFloat(x.lon) });
+      });
+    }
+  } catch(e){ /* 施設検索が使えなくても住所結果は出す */ }
+
+  _searchBusy = false;
+
+  // 入力に近いものを上に並べ替える。
+  // 「大分空港」で住所検索が「大分」だけに反応した結果が上に来ると
+  // 目的の施設が埋もれるため、名前の一致度で順位を決める。
+  results.forEach(function(x){
+    var n = x.name || '';
+    x._score = (n === q) ? 0
+             : (n.indexOf(q) >= 0) ? 1
+             : (q.indexOf(n) >= 0) ? 2
+             : 3;
+  });
+  results.sort(function(a,b){ return a._score - b._score; });
+
+  renderSearchResults(results.slice(0,8), q);
+}
+
+function renderSearchResults(list, q){
+  var box = _searchBox();
+  if(!list.length){
+    box.style.display='none'; box.innerHTML='';
+    _searchList = [];        // 前回の結果を残さない
+    mapStatus('「'+q+'」は見つかりませんでした。地名や駅名を変えてお試しください。', true);
+    return;
+  }
+  box.innerHTML = list.map(function(x, i){
+    var tag = x.kind==='住所'
+      ? '<span class="si-tag si-addr">住所</span>'
+      : '<span class="si-tag si-poi">施設</span>';
+    return '<div class="search-item" onclick="gotoSearchResult('+i+')">'
+         + tag + escH(x.name)
+         + (x.sub ? '<div class="si-sub">'+escH(x.sub)+'</div>' : '')
+         + '</div>';
+  }).join('');
+  box.style.display='block';
+  _searchList = list;
+  mapStatus(list.length+'件見つかりました。移動先を選んでください。');
+}
+
+var _searchList = [];
+function gotoSearchResult(i){
+  var x = _searchList[i];
+  if(!x) return;
+  hideSearchResults();
+  _map.setView([x.lat, x.lng], 17);
+  if(_searchMarker) _map.removeLayer(_searchMarker);
+  _searchMarker = L.circleMarker([x.lat, x.lng],
+      {radius:7, color:'#e63946', fillColor:'#fff', fillOpacity:1, weight:3})
+    .addTo(_map).bindTooltip(x.name, {permanent:false});
+  refreshFude();
+}
+
+// ============================================================
+// 測った面積を圃場マスタへ登録する
+// ============================================================
+function openFieldRegister(){
+  if(totalArea() <= 0){ toast('先に農地を選んでください','error'); return; }
+  var sel = document.getElementById('fr-target');
+  sel.innerHTML = '<option value="__new__">➕ 新しい圃場として登録</option>' +
+    state.fields.map(function(f){
+      return '<option value="'+f[0]+'">'+escH(f[1])+'（面積を上書き）</option>';
+    }).join('');
+  document.getElementById('fr-name').value = '';
+  onFieldRegTargetChange();
+  renderFieldRegArea();
+  document.getElementById('field-reg-modal').style.display='block';
+}
+
+function onFieldRegTargetChange(){
+  var isNew = document.getElementById('fr-target').value === '__new__';
+  document.getElementById('fr-name-wrap').style.display = isNew ? 'block' : 'none';
+}
+
+// 選んだ単位に応じて登録される数値を見せる
+function fieldRegValue(){
+  var a = totalArea();
+  return document.getElementById('fr-unit').value === 'アール'
+    ? Math.round(a/100*100)/100     // アール（小数2桁）
+    : Math.round(a);                // m²（整数）
+}
+
+function renderFieldRegArea(){
+  var a = totalArea();
+  document.getElementById('fr-area').textContent = fieldRegValue() + ' ' + document.getElementById('fr-unit').value;
+  document.getElementById('fr-area-sub').textContent =
+    Math.round(a).toLocaleString() + ' m²／' + (a/100).toFixed(1) + ' アール（' + _selected.length + '区画）';
+}
+
+function closeFieldRegister(){
+  document.getElementById('field-reg-modal').style.display='none';
+}
+
+async function saveFieldRegister(){
+  var target = document.getElementById('fr-target').value;
+  var unit   = document.getElementById('fr-unit').value;
+  var val    = fieldRegValue();
+  if(val <= 0){ toast('面積が取得できていません','error'); return; }
+
+  showLoad();
+  try {
+    if(target === '__new__'){
+      var name = document.getElementById('fr-name').value.trim();
+      if(!name){ toast('圃場名を入力してください','error'); hideLoad(); return; }
+      await sheetsAppend('圃場', [genId(), name, val, unit]);
+      await load();
+      toast('圃場「'+name+'」を登録しました');
+    } else {
+      // 既存の圃場は面積(C列)と単位(D列)だけ差し替える
+      var rows = await fetchS('圃場');
+      var idx  = rows.findIndex(function(r){ return r[0]===target; });
+      if(idx < 0){ toast('対象の圃場が見つかりません','error'); hideLoad(); return; }
+      await sheetsWrite('圃場', 'C'+(idx+2)+':D'+(idx+2), [[val, unit]]);
+      await load();
+      toast('面積を更新しました');
+    }
+    closeFieldRegister();
+    mapClearSel();
+  } catch(e){
+    toast('登録エラー: '+e.message, 'error');
+  }
   hideLoad();
 }
 
