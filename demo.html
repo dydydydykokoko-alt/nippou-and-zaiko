@@ -797,7 +797,7 @@ function render(){
           if(!m) return ''; // 資材マスタに存在しない行はスキップ
           var low = Number(i[1]) < Number(i[2]);
           return '<tr class="'+(low?'row-low':'')+'"><td>'+escH(m[1])+'</td>'
-            +'<td>'+formatStock(i[1], m)+'</td><td>'+formatStock(i[2], m)+'</td><td>'+(low?'⚠ 不足':'✓ OK')+'</td></tr>';
+            +'<td>'+formatStockTotal(i[1], m)+'</td><td>'+formatStockTotal(i[2], m)+'</td><td>'+(low?'⚠ 不足':'✓ OK')+'</td></tr>';
         }).join('');
   // 圃場フィルターの選択肢を更新（選択中の値を保持）
   var dff = document.getElementById('diary-filter-field');
@@ -867,6 +867,13 @@ function formatStock(total, mat){
     return rem + unit;
   }
   return total + unit;
+}
+
+// 在庫一覧は袋数に分けず、総量だけを表示する
+// 例: 150kg（「7袋 + 10kg（150kg）」とはしない）
+function formatStockTotal(total, mat){
+  var unit = mat && mat[2] ? mat[2] : '';
+  return (parseFloat(total)||0) + unit;
 }
 
 function _matStep(range){
