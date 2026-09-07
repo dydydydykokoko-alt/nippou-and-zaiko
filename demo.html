@@ -109,6 +109,14 @@ body {
 .dil-name input[type=checkbox] { width:20px; height:20px; }
 .dil-calc { font-size:14px; font-weight:700; color:var(--primary-dark); white-space:nowrap; }
 .dil-calc small { display:block; font-weight:400; font-size:11px; color:var(--text-muted); }
+.dil-ratio { width:auto; min-width:92px; padding:6px 8px; font-size:13px; }
+/* 希釈倍率の入力欄（1つずつ追加する方式）*/
+.ratio-row { display:flex; align-items:center; gap:6px; margin-bottom:6px; }
+.ratio-row .ratio-input { flex:1; min-width:0; }
+.ratio-unit { font-weight:700; color:var(--text-muted); white-space:nowrap; }
+.ratio-del { background:none; border:1px solid var(--border); color:var(--danger);
+  border-radius:6px; width:38px; height:44px; font-size:15px; cursor:pointer; flex-shrink:0; }
+.ratio-add { width:100%; margin-top:2px; }
 .dil-note { font-size:11px; color:var(--text-muted); margin-top:4px; }
 .img-upload-area { border: 2px dashed var(--border); border-radius: var(--radius); padding: 16px; text-align: center; background: #fafff9; }
 .img-previews { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
@@ -416,7 +424,7 @@ body {
         <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">1セットの量（例：10 kg / 袋）</div>
         <div style="display:flex;gap:6px;align-items:center">
           <input type="number" id="new-m-qty" class="form-control" placeholder="量" min="0" step="0.01" style="width:80px;flex-shrink:0">
-          <select id="new-m-unit" class="form-control" style="flex:1">
+          <select id="new-m-unit" class="form-control" style="flex:1" onchange="onNewMatUnitChange()">
             <option value="">計量単位</option>
             <option value="kg">kg</option>
             <option value="g">g</option>
@@ -443,11 +451,12 @@ body {
           </select>
         </div>
       </div>
-      <div style="margin-bottom:8px">
-        <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">希釈倍率（希釈して使う資材のみ・不要なら空欄）</div>
-        <div style="display:flex;gap:6px;align-items:center">
-          <input type="number" id="new-m-dil" class="form-control" placeholder="例：1000" min="0" step="1" style="flex:1">
-          <span style="font-weight:700;color:var(--text-muted);white-space:nowrap">倍</span>
+      <div style="margin-bottom:8px;display:none" id="new-m-dil-wrap">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">希釈倍率（不要なら空欄）</div>
+        <div id="new-m-dil"></div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">
+          複数登録すると、日報で使う倍率を選べます。<br>
+          液剤・水和剤・液肥など、水で薄めて使う資材が対象です（薄めない資材は空欄）。
         </div>
       </div>
       <button class="btn btn-primary btn-sm" style="width:100%" onclick="addMat()">＋ 資材を追加</button>
@@ -703,20 +712,21 @@ function initSampleData(){
   ]);
 
   // [ID, 名前, 計量単位, 1セットの量, セット単位]
-  var m1=genId(), m2=genId(), m3=genId(), m4=genId(), m5=genId(), m6=genId(), m7=genId();
+  var m1=genId(), m2=genId(), m3=genId(), m4=genId(), m5=genId(), m6=genId(), m7=genId(), m8=genId();
   // [ID, 名前, 計量単位, 1セット量, セット単位, 希釈倍率]
   _demoWrite('資材マスタ',[
     [m1,'化成肥料','kg','20','袋',''],
-    [m2,'殺虫剤A','mL','500','本','1000'],
+    [m2,'殺虫剤A','mL','500','本','1000,1500,2000'],
     [m3,'マルチ','枚','','',''],
     [m4,'種子','粒','1000','袋',''],
     [m5,'殺菌剤B','mL','500','本','2000'],
-    [m6,'除草剤C','mL','500','本','100'],
-    [m7,'液肥D','L','10','缶','500']
+    [m6,'除草剤C','mL','500','本','100,200'],
+    [m7,'液肥D','L','10','缶','500'],
+    [m8,'水和剤E','g','500','袋','1000,2000']
   ]);
 
   _demoWrite('作業内容_資材',[
-    [w1,m1],[w1,m7],[w2,m2],[w2,m5],[w3,m6],[w4,m3],[w4,m4]
+    [w1,m1],[w1,m7],[w2,m2],[w2,m5],[w2,m8],[w3,m6],[w4,m3],[w4,m4]
   ]);
 
   // [資材ID, 在庫数, 最低在庫]
@@ -727,7 +737,8 @@ function initSampleData(){
     [m4,3000,1000],
     [m5,3000,500],
     [m6,4000,500],
-    [m7,50,10]
+    [m7,50,10],
+    [m8,4000,500]
   ]);
 
   var today = new Date();
@@ -957,7 +968,8 @@ function render(){
       var info = '';
       if(m[3]&&m[2]) info = m[3]+m[2];
       if(m[4]) info += (info?'/':'')+m[4];
-      if(m[5]) info += (info?'　':'')+'希釈'+m[5]+'倍';
+      var rs = matDilutions(m);
+      if(rs.length) info += (info?'　':'')+'希釈'+rs.join('/')+'倍';
       return '<div class="m-list-item"><div><div style="font-weight:600">'+escH(m[1])+'</div>'
         +(info?'<div style="font-size:12px;color:var(--text-muted)">1セット: '+escH(info)+'</div>':'')+'</div>'
         +'<div style="display:flex;gap:6px">'
@@ -1047,15 +1059,43 @@ function buildMatRow(m, preVal){
 // ============================================================
 // 希釈して使う資材の計算
 //   農薬・除草剤・液肥など、水で薄めて使う資材が対象。
-//   資材マスタに「希釈倍率」を登録した資材は、日報で使用量を直接入れず、
-//   散布・散水する希釈量(L)から自動で必要量を求める。
+//   1つの資材に倍率を複数登録でき（例: 1000,1500,2000）、日報で選んで使う。
 //     必要量 = 希釈量(L) ÷ 倍率   （これをその資材の計量単位に換算）
-//   例: 500L を 1000倍 で散布 → 0.5L = 500mL
+//   例: 500L を 1000倍 で散布 → 液剤なら500mL、水和剤なら500g
+//
+//   倍率を登録できるのは「タンクに計り入れられる単位」の資材だけにする。
+//   水和剤・顆粒水和剤は g で計量するが希釈して使うため、g・kg も対象に含める。
+//   （化成肥料など希釈しないものは、倍率を空欄にしておけばよい）
 // ============================================================
-function matDilution(m){ return m ? (parseFloat(m[5])||0) : 0; }
+var DILUTABLE_UNITS = ['mL','L','g','kg'];
+function isDilutableUnit(u){ return DILUTABLE_UNITS.indexOf(u) >= 0; }
+
+// 全角の数字・記号を半角に直す。
+// 日本語入力のまま打つと「１０００」になることがあり、そのままでは数値として
+// 読めないため、保存時・読み取り時の両方でここを通す。
+function toHalfWidth(s){
+  return String(s||'')
+    .replace(/[０-９]/g, function(c){ return String.fromCharCode(c.charCodeAt(0)-0xFEE0); })
+    .replace(/[．。]/g, '.')
+    .replace(/[，、]/g, ',')
+    .replace(/\u3000/g, ' ');
+}
+
+// 資材に登録された希釈倍率の一覧。希釈できない単位なら空。
+// 区切りはカンマ・スペース・スラッシュのいずれでも受け付ける。
+function matDilutions(m){
+  if(!m || !isDilutableUnit(m[2]||'')) return [];
+  return toHalfWidth(m[5])
+    .split(/[,\/\s]+/)
+    .map(function(x){ return parseFloat(x)||0; })
+    .filter(function(x){ return x > 0; });
+}
+
+// 代表の倍率（既定で使うもの）
+function matDilution(m){ var a=matDilutions(m); return a.length ? a[0] : 0; }
 
 // 「L」を資材の計量単位へ換算する係数。
-// 農業では水1L≒1kgとして扱うため、g/kgも同じ換算で問題ない。
+// 水1L≒1kg として扱うため、水和剤(g)・粉剤(kg)も液剤と同じ換算になる。
 function dilUnitFactor(unit){
   switch(unit){
     case 'mL': case 'g':  return 1000;
@@ -1064,9 +1104,9 @@ function dilUnitFactor(unit){
   }
 }
 
-// 希釈量(L)と資材から使用量を求める
-function dilAmount(m, liters){
-  var r = matDilution(m);
+// 希釈量(L)と資材から使用量を求める。倍率を指定しなければ先頭のものを使う。
+function dilAmount(m, liters, ratio){
+  var r = ratio || matDilution(m);
   if(!r || !liters) return 0;
   var v = liters / r * dilUnitFactor(m[2]||'');
   return Math.round(v*1000)/1000;
@@ -1078,8 +1118,9 @@ function dilAmount(m, liters){
 //   希釈量は作業内容ごとに分ける。農薬と除草剤を同じタンクで混ぜることは
 //   ないため、「農薬散布」と「除草」を同時に選んだ場合は希釈量を別々に入力する。
 //   希釈倍率を持たない資材は、作業内容をまたいで1つにまとめて表示する。
-function buildMatSection(prefix, wtIds, preVals, litersMap){
+function buildMatSection(prefix, wtIds, preVals, litersMap, preRatios){
   litersMap = litersMap || {};
+  preRatios = preRatios || {};
   var html = '', plainSeen = {}, plain = [];
 
   wtIds.forEach(function(wtId){
@@ -1109,15 +1150,28 @@ function buildMatSection(prefix, wtIds, preVals, litersMap){
       + '</div>';
 
     html += dil.map(function(m){
-      var key = wtId+'/'+m[0];
-      var on  = preVals[key] !== undefined ? preVals[key] > 0 : (preVals[m[0]] > 0);
-      return '<div class="dil-row'+(on?' on':'')+'" id="'+prefix+'-dr-'+key.replace('/','-')+'">'
+      var key  = (wtId+'-'+m[0]);
+      var on   = preVals[wtId+'/'+m[0]] !== undefined ? preVals[wtId+'/'+m[0]] > 0 : (preVals[m[0]] > 0);
+      var rs   = matDilutions(m);
+      var cur  = preRatios[wtId+'/'+m[0]] || preRatios[m[0]] || rs[0];
+      // 倍率が複数登録されていれば選べるようにする
+      var sel  = rs.length > 1
+        ? '<select class="dil-ratio form-control" data-ratio="'+m[0]+'" data-wt="'+wtId+'"'
+          + ' onchange="onDilChange(\''+prefix+'\')">'
+          + rs.map(function(r){
+              return '<option value="'+r+'"'+(Math.abs(r-cur)<0.0001?' selected':'')+'>'+r+'倍</option>';
+            }).join('')
+          + '</select>'
+        : '';
+      return '<div class="dil-row'+(on?' on':'')+'" id="'+prefix+'-dr-'+key+'">'
         + '<label class="dil-name">'
         + '<input type="checkbox" data-dil="'+m[0]+'" data-wt="'+wtId+'"'+(on?' checked':'')
         +   ' onchange="onDilChange(\''+prefix+'\')"> '+escH(m[1])
         + '</label>'
-        + '<span class="dil-calc" id="'+prefix+'-dc-'+key.replace('/','-')+'">—</span>'
-        + '</div>';
+        + '<div style="display:flex;align-items:center;gap:8px">'
+        + sel
+        + '<span class="dil-calc" id="'+prefix+'-dc-'+key+'">—</span>'
+        + '</div></div>';
     }).join('');
   });
 
@@ -1129,6 +1183,12 @@ function buildMatSection(prefix, wtIds, preVals, litersMap){
 function dilLiters(prefix, wtId){
   var el = document.querySelector('#'+prefix+'-mats input[data-lit="'+wtId+'"]');
   return el ? parseFloat(el.value)||0 : 0;
+}
+
+// 画面で選ばれている希釈倍率を読む（選択欄が無ければ登録された先頭の倍率）
+function dilRatio(prefix, wtId, m){
+  var el = document.querySelector('#'+prefix+'-mats select[data-ratio="'+m[0]+'"][data-wt="'+wtId+'"]');
+  return el ? (parseFloat(el.value)||matDilution(m)) : matDilution(m);
 }
 
 
@@ -1163,6 +1223,107 @@ function parseLiters(raw, wtIds){
 }
 
 var _deLiters = {};   // 編集画面で復元する希釈量
+var _deRatios = {};   // 編集画面で復元する希釈倍率
+
+// 希釈倍率は液体（mL・L）の資材だけに使うため、単位に応じて欄を出し入れする
+function onNewMatUnitChange(){
+  var u = document.getElementById('new-m-unit').value;
+  var w = document.getElementById('new-m-dil-wrap');
+  if(!w) return;
+  var show = isDilutableUnit(u);
+  w.style.display = show ? 'block' : 'none';
+  if(show){
+    // 既に入力済みの値は残したまま作り直す
+    var keep = ratioEditorValue('new-m-dil');
+    renderRatioEditor('new-m-dil', keep ? keep.split(',') : []);
+  } else {
+    document.getElementById('new-m-dil').innerHTML = '';
+  }
+}
+
+
+// 保存された使用量と希釈量から、そのとき使った倍率を割り出す。
+//   使用量 = 希釈量 ÷ 倍率 × 換算係数  →  倍率 = 希釈量 × 換算係数 ÷ 使用量
+// 端数で完全一致しないことがあるため、登録済みの倍率のうち最も近いものを返す。
+function guessRatios(wtIds, matStr, litersMap){
+  var out={};
+  var map={};
+  String(matStr||'').split(',').filter(Boolean).forEach(function(s){
+    var i=s.indexOf(':'); if(i<0) return;
+    map[s.substring(0,i)] = parseFloat(s.substring(i+1))||0;
+  });
+  (wtIds||[]).forEach(function(wtId){
+    var lit = litersMap[wtId]||0;
+    if(!lit) return;
+    state.mapping.filter(function(mp){ return mp[0]===wtId; }).forEach(function(mp){
+      var m = state.mats.find(function(x){ return x[0]===mp[1]; });
+      var rs = matDilutions(m);
+      if(rs.length<2) return;
+      var amt = map[mp[1]];
+      if(!amt) return;
+      var calc = lit * dilUnitFactor(m[2]||'') / amt;
+      var best = rs[0], bd = Math.abs(rs[0]-calc);
+      rs.forEach(function(r){ var d=Math.abs(r-calc); if(d<bd){ bd=d; best=r; } });
+      out[wtId+'/'+mp[1]] = best;
+    });
+  });
+  return out;
+}
+
+
+// ============================================================
+// 希釈倍率の入力欄（1つずつ足していく方式）
+//   区切り文字を使わないので入力ミスが起きない。
+//   type="text" + inputmode="numeric" にしているのは、数字キーパッドを出しつつ、
+//   全角で入っても値が消えないようにするため（number型だと黙って空になる）。
+// ============================================================
+function normalizeRatioInput(el){
+  var v = toHalfWidth(el.value).replace(/[^0-9.]/g,'');
+  if(el.value !== v) el.value = v;
+}
+
+function ratioRowHtml(val){
+  return '<div class="ratio-row">'
+    + '<input type="text" inputmode="numeric" class="form-control ratio-input" value="'+escH(val||'')+'"'
+    +   ' placeholder="例：1000" oninput="normalizeRatioInput(this)">'
+    + '<span class="ratio-unit">倍</span>'
+    + '<button type="button" class="ratio-del" onclick="removeRatioRow(this)" aria-label="削除">✕</button>'
+    + '</div>';
+}
+
+// 倍率の入力欄を組み立てる。値が無ければ空の欄を1つ置く。
+function renderRatioEditor(containerId, values){
+  var el = document.getElementById(containerId);
+  if(!el) return;
+  var vs = (values && values.length) ? values : [''];
+  el.innerHTML = '<div class="ratio-rows">' + vs.map(ratioRowHtml).join('') + '</div>'
+    + '<button type="button" class="btn btn-secondary btn-sm ratio-add" onclick="addRatioRow(\'' + containerId + '\')">＋ 倍率を追加</button>';
+}
+
+function addRatioRow(containerId){
+  var rows = document.querySelector('#'+containerId+' .ratio-rows');
+  if(!rows) return;
+  rows.insertAdjacentHTML('beforeend', ratioRowHtml(''));
+  var ins = rows.querySelectorAll('.ratio-input');
+  ins[ins.length-1].focus();
+}
+
+function removeRatioRow(btn){
+  var rows = btn.closest('.ratio-rows');
+  btn.closest('.ratio-row').remove();
+  // 最低1つは残す（全部消えると入力できなくなるため）
+  if(rows && !rows.querySelector('.ratio-row')) rows.insertAdjacentHTML('beforeend', ratioRowHtml(''));
+}
+
+// 入力された倍率をまとめて取り出す（保存形式はこれまでどおりカンマ区切り）
+function ratioEditorValue(containerId){
+  var out=[];
+  document.querySelectorAll('#'+containerId+' .ratio-input').forEach(function(el){
+    var v=parseFloat(toHalfWidth(el.value))||0;
+    if(v>0 && out.indexOf(v)<0) out.push(v);
+  });
+  return out.join(',');
+}
 
 // 希釈量やチェックが変わったら、各資材の使用量を計算し直して表示する
 function onDilChange(prefix){
@@ -1175,10 +1336,13 @@ function onDilChange(prefix){
     var out  = document.getElementById(prefix+'-dc-'+key);
     if(row) row.className = 'dil-row' + (cb.checked ? ' on' : '');
     if(!out) return;
+    var selEl = document.querySelector('#'+prefix+'-mats select[data-ratio="'+id+'"][data-wt="'+wtId+'"]');
+    if(selEl) selEl.style.display = cb.checked ? '' : 'none';
     if(!cb.checked){ out.textContent = '—'; return; }
-    var amt = dilAmount(m, dilLiters(prefix, wtId));
+    var ratio = dilRatio(prefix, wtId, m);
+    var amt   = dilAmount(m, dilLiters(prefix, wtId), ratio);
     out.innerHTML = amt > 0
-      ? amt + escH(m[2]||'') + '<small>' + escH(m[5]) + '倍希釈</small>'
+      ? amt + escH(m[2]||'') + '<small>' + ratio + '倍希釈</small>'
       : '<small>希釈量を入力</small>';
   });
 }
@@ -1195,7 +1359,8 @@ function collectMatInputs(containerId){
     if(!cb.checked) return;
     var id=cb.getAttribute('data-dil');
     var m=state.mats.find(function(x){ return x[0]===id; });
-    var amt=dilAmount(m, dilLiters(prefix, cb.getAttribute('data-wt')));
+    var wt=cb.getAttribute('data-wt');
+    var amt=dilAmount(m, dilLiters(prefix, wt), dilRatio(prefix, wt, m));
     if(amt>0) dilSum[id]=(dilSum[id]||0)+amt;
   });
   Object.keys(dilSum).forEach(function(id){
@@ -1530,14 +1695,14 @@ async function addMat(){
   showLoad();
   try {
     var id=genId();
-    var dil = document.getElementById('new-m-dil').value.trim();
+    var dil = ratioEditorValue('new-m-dil');
     await sheetsAppend('資材マスタ',[id,name,unit,qty,setunit,dil]);
     try { await sheetsAppend('在庫',[id,0,0]); } catch(e2){}
     document.getElementById('new-m').value='';
     document.getElementById('new-m-unit').value='';
     document.getElementById('new-m-qty').value='';
     document.getElementById('new-m-setunit').value='';
-    document.getElementById('new-m-dil').value='';
+    renderRatioEditor('new-m-dil', []);
     await load(); toast('資材を追加しました');
   } catch(e){ toast('追加エラー: '+e.message,'error'); }
   hideLoad();
@@ -1612,14 +1777,24 @@ function openEdit(sheetName,id){
     fieldDefs=[{label:'作業名',val:item[1]||'',type:'text'}];
   } else if(sheetName==='資材マスタ'){
     item=state.mats.find(function(m){ return m[0]===id; }); if(!item) return;
-    fieldDefs=[{label:'資材名',val:item[1]||'',type:'text'},{label:'計量単位',val:item[2]||'',type:'select',options:['','kg','g','L','mL','個','粒','枚','本','m','cm']},{label:'1セット量',val:item[3]||'',type:'number'},{label:'セット単位',val:item[4]||'',type:'select',options:['','袋','個','本','枚','箱','束','缶','ボトル']},{label:'希釈倍率（希釈して使う資材のみ・不要なら空欄）',val:item[5]||'',type:'number'}];
+    fieldDefs=[{label:'資材名',val:item[1]||'',type:'text'},{label:'計量単位',val:item[2]||'',type:'select',options:['','kg','g','L','mL','個','粒','枚','本','m','cm']},{label:'1セット量',val:item[3]||'',type:'number'},{label:'セット単位',val:item[4]||'',type:'select',options:['','袋','個','本','枚','箱','束','缶','ボトル']}];
+    // 希釈倍率は液体（mL・L）のときだけ編集できるようにする
+    if(isDilutableUnit(item[2]||'')) fieldDefs.push({label:'希釈倍率（不要なら空欄）',val:item[5]||'',type:'ratios'});
   } else return;
   _editCtx={sheetName:sheetName,id:id,fieldDefs:fieldDefs};
   document.getElementById('edit-modal-title').textContent=sheetName+'を編集';
   document.getElementById('edit-modal-body').innerHTML=fieldDefs.map(function(f,i){
+    if(f.type==='ratios') return '<div class="form-group"><label class="form-label">'+f.label+'</label><div id="ef-'+i+'"></div></div>';
     if(f.type==='select') return '<div class="form-group"><label class="form-label">'+f.label+'</label><select id="ef-'+i+'" class="form-control">'+f.options.map(function(o){ return '<option value="'+o+'"'+(o===f.val?' selected':'')+'>'+o+'</option>'; }).join('')+'</select></div>';
     return '<div class="form-group"><label class="form-label">'+f.label+'</label><input type="'+f.type+'" id="ef-'+i+'" class="form-control" value="'+escH(f.val)+'"></div>';
   }).join('');
+  // 倍率欄は1つずつ入力する部品を組み立てる
+  fieldDefs.forEach(function(f,i){
+    if(f.type==='ratios'){
+      var vs = toHalfWidth(f.val).split(/[,\/\s]+/).filter(Boolean);
+      renderRatioEditor('ef-'+i, vs);
+    }
+  });
   document.getElementById('edit-modal').style.display='block';
 }
 
@@ -1627,7 +1802,9 @@ function closeEditModal(){ document.getElementById('edit-modal').style.display='
 
 async function saveEdit(){
   if(!_editCtx) return;
-  var vals=_editCtx.fieldDefs.map(function(_,i){ return document.getElementById('ef-'+i).value.trim(); });
+  var vals=_editCtx.fieldDefs.map(function(f,i){
+    return f.type==='ratios' ? ratioEditorValue('ef-'+i) : document.getElementById('ef-'+i).value.trim();
+  });
   if(!vals[0]){ toast('名前を入力してください','error'); return; }
   showLoad();
   try {
@@ -1691,7 +1868,14 @@ async function openDiaryDetail(id){
       var name = e.mat ? escH(e.mat[1]) : '不明';
       var unit = e.mat && e.mat[2] ? e.mat[2] : '';
       var formatted = e.mat ? formatStock(e.amt, e.mat) : (e.amt + unit);
-      var dilTag = (e.mat && matDilution(e.mat)) ? '<span style="font-size:11px;color:var(--text-muted)"> '+escH(e.mat[5])+'倍</span>' : '';
+      var dilTag = '';
+      if(e.mat && matDilution(e.mat)){
+        var _rs = guessRatios((d[3]||'').split(',').filter(Boolean), d[4]||'', parseLiters(d[11], (d[3]||'').split(',').filter(Boolean)));
+        var _r = 0;
+        Object.keys(_rs).forEach(function(k){ if(k.split('/')[1]===e.mat[0]) _r=_rs[k]; });
+        if(!_r) _r = matDilution(e.mat);
+        dilTag = '<span style="font-size:11px;color:var(--text-muted)"> '+_r+'倍</span>';
+      }
       return '<div style="display:flex;justify-content:space-between;align-items:center;'
         +'background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin-bottom:6px">'
         +'<span style="font-weight:600;color:var(--text-main)">'+name+dilTag+'</span>'
@@ -1795,6 +1979,7 @@ async function openDiaryEdit(id){
 
   // 資材セクション更新（希釈量は作業内容ごとに復元する）
   _deLiters = parseLiters(entry[11], wtIds);
+  _deRatios = guessRatios(wtIds, entry[4]||'', _deLiters);
   updateDEMats(wtIds, entry[4]||'');
   document.getElementById('diary-edit-modal').style.display='block';
 }
@@ -1811,7 +1996,7 @@ function updateDEMats(wtIds, matStr){
     sec.style.display='block';
     var pre={};
     Object.keys(matMap).forEach(function(k){ pre[k]=parseFloat(matMap[k])||0; });
-    document.getElementById('de-mats').innerHTML = buildMatSection('de', wtIds, pre, _deLiters||{});
+    document.getElementById('de-mats').innerHTML = buildMatSection('de', wtIds, pre, _deLiters||{}, _deRatios||{});
     onDilChange('de');
   } else { sec.style.display='none'; }
 }
@@ -1823,6 +2008,10 @@ function onDEWTC(el){
   _deLiters = {};
   document.querySelectorAll('#de-mats input[data-lit]').forEach(function(e){
     var v=parseFloat(e.value)||0; if(v>0) _deLiters[e.getAttribute('data-lit')]=v;
+  });
+  _deRatios = {};
+  document.querySelectorAll('#de-mats select[data-ratio]').forEach(function(e){
+    _deRatios[e.getAttribute('data-wt')+'/'+e.getAttribute('data-ratio')] = parseFloat(e.value)||0;
   });
   var keep = collectMatInputs('de-mats');
   var sel=Array.from(document.querySelectorAll('#de-wt-list input:checked')).map(function(i){ return i.value; });
