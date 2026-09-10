@@ -459,6 +459,10 @@ body {
           液剤・水和剤・液肥など、水で薄めて使う資材が対象です（薄めない資材は空欄）。
         </div>
       </div>
+      <div style="margin-bottom:10px">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">この資材を使う作業（あとから「紐付」でも変更できます）</div>
+        <div id="new-m-wt" class="check-group"></div>
+      </div>
       <button class="btn btn-primary btn-sm" style="width:100%" onclick="addMat()">＋ 資材を追加</button>
       <div id="list-m" style="margin-top:10px"></div>
     </div>
@@ -963,6 +967,19 @@ function render(){
         +'<button class="btn btn-secondary btn-sm" onclick="openEdit(\'作業内容\',\''+w[0]+'\')">編集</button>'
         +'<button class="btn btn-danger btn-sm" onclick="delM(\'作業内容\',\''+w[0]+'\')">削除</button></div></div>';
     }).join('') || '<div class="no-data">登録なし</div>';
+  // 資材追加フォームの「この資材を使う作業」（チェック状態は保つ）
+  var nmw = document.getElementById('new-m-wt');
+  if(nmw){
+    var checkedWts = Array.from(nmw.querySelectorAll('input:checked')).map(function(i){ return i.value; });
+    nmw.innerHTML = state.wts.length
+      ? state.wts.map(function(w){
+          var on = checkedWts.indexOf(w[0]) >= 0;
+          return '<label class="check-item'+(on?' checked':'')+'" id="nmw-l-'+w[0]+'">'
+            + '<input type="checkbox" value="'+w[0]+'"'+(on?' checked':'')
+            +   ' onchange="onNewMatWtChange(this)"> '+escH(w[1])+'</label>';
+        }).join('')
+      : '<span style="color:var(--text-muted);font-size:13px">先に「作業」タブで作業内容を登録してください</span>';
+  }
   document.getElementById('list-m').innerHTML =
     state.mats.map(function(m){
       var info = '';
@@ -1324,6 +1341,13 @@ function ratioEditorValue(containerId){
   });
   return out.join(',');
 }
+
+// 資材追加フォームの作業チェック
+function onNewMatWtChange(el){
+  var l = document.getElementById('nmw-l-'+el.value);
+  if(l) l.classList.toggle('checked', el.checked);
+}
+
 
 // 希釈量やチェックが変わったら、各資材の使用量を計算し直して表示する
 function onDilChange(prefix){
@@ -1696,14 +1720,23 @@ async function addMat(){
   try {
     var id=genId();
     var dil = ratioEditorValue('new-m-dil');
+    var wtIds = Array.from(document.querySelectorAll('#new-m-wt input:checked')).map(function(i){ return i.value; });
     await sheetsAppend('資材マスタ',[id,name,unit,qty,setunit,dil]);
     try { await sheetsAppend('在庫',[id,0,0]); } catch(e2){}
+    // 選ばれた作業内容との紐付けを同時に登録する
+    for(var wi=0; wi<wtIds.length; wi++){
+      await sheetsAppend('作業内容_資材',[wtIds[wi], id]);
+    }
     document.getElementById('new-m').value='';
     document.getElementById('new-m-unit').value='';
     document.getElementById('new-m-qty').value='';
     document.getElementById('new-m-setunit').value='';
     renderRatioEditor('new-m-dil', []);
-    await load(); toast('資材を追加しました');
+    document.querySelectorAll('#new-m-wt input:checked').forEach(function(i){
+      i.checked=false; onNewMatWtChange(i);
+    });
+    await load();
+    toast(wtIds.length ? '資材を追加し、'+wtIds.length+'件の作業に紐付けました' : '資材を追加しました');
   } catch(e){ toast('追加エラー: '+e.message,'error'); }
   hideLoad();
 }
