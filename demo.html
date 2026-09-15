@@ -582,6 +582,7 @@ body {
       <div class="form-group"><label class="form-label">作業日</label><input type="date" id="de-date" class="form-control"></div>
       <div class="form-group"><label class="form-label">圃場</label><select id="de-field" class="form-control"></select></div>
     </div>
+    <div class="form-group"><label class="form-label">天気</label><div id="de-weather-list" class="weather-group"></div></div>
     <div class="form-group"><label class="form-label">作業内容</label><div id="de-wt-list" class="check-group"></div></div>
     <div id="de-mat-section" class="form-group" style="display:none">
       <label class="form-label">使用資材と量</label>
@@ -753,9 +754,9 @@ function initSampleData(){
 
   // [ID,日付,圃場ID,作業ID,使用資材,開始,分,備考,圃場名,作業名]
   _demoWrite('作業日報',[
-    [genId(),daysAgo(9), f1,w1,m1+':40','07:00',420,'施肥作業。今年初回。','北圃場','施肥'],
-    [genId(),daysAgo(6), f2,w2,m2+':500','09:00',240,'南圃場の農薬散布完了','南圃場','農薬散布','',500],
-    [genId(),daysAgo(2), f3,w4,m3+':3,'+m4+':500','08:00',300,'春の定植を完了','ハウス1号','定植']
+    [genId(),daysAgo(9), f1,w1,m1+':40','07:00',420,'施肥作業。今年初回。','北圃場','施肥','','','晴れ'],
+    [genId(),daysAgo(6), f2,w2,m2+':500','09:00',240,'南圃場の農薬散布完了','南圃場','農薬散布','',500,'曇り'],
+    [genId(),daysAgo(2), f3,w4,m3+':3,'+m4+':500','08:00',300,'春の定植を完了','ハウス1号','定植','','','晴れのち雨']
   ]);
 
   // [ID,日付,資材ID,種別,数量,単価,金額,備考,資材名]
@@ -1435,12 +1436,32 @@ function setDefaultTime(){
 // ============================================================
 // 天気選択
 // ============================================================
-function onWeatherChange(){
-  document.querySelectorAll('.weather-item').forEach(function(el){
-    var radio = el.querySelector('input[type="radio"]');
-    if(radio && radio.checked) el.classList.add('selected');
-    else el.classList.remove('selected');
+var WEATHERS = [
+  ['晴れ','☀️'],['曇り','⛅'],['雨','🌧️'],['晴れのち雨','🌦️'],
+  ['雨のち晴れ','🌤️'],['雪','❄️'],['強風','🌬️']
+];
+function weatherIcon(w){
+  var x = WEATHERS.find(function(v){ return v[0]===w; });
+  return x ? x[1] : '';
+}
+
+// 天気の選択状態を見た目に反映する（name ごとに独立させ、日報と編集画面が干渉しないようにする）
+function onWeatherChange(name){
+  name = name || 'd-weather';
+  document.querySelectorAll('input[name="'+name+'"]').forEach(function(radio){
+    var el = radio.closest('.weather-item');
+    if(el) el.classList.toggle('selected', radio.checked);
   });
+}
+function getWeather(name){
+  var r = document.querySelector('input[name="'+name+'"]:checked');
+  return r ? r.value : '';
+}
+function setWeather(name, value){
+  document.querySelectorAll('input[name="'+name+'"]').forEach(function(radio){
+    radio.checked = (radio.value === value);
+  });
+  onWeatherChange(name);
 }
 
 // ============================================================
@@ -1610,6 +1631,7 @@ function resetDiary(){
     var l=document.getElementById('wt-l-'+cb.value); if(l) l.classList.remove('checked');
   });
   document.getElementById('mat-section').style.display='none';
+  setWeather('d-weather','');
   setDefaultTime();
 }
 
@@ -1639,7 +1661,7 @@ async function saveDiary(){
   try {
     var diaryId=genId();
     var dLit = collectLiters('d');
-    await sheetsAppend('作業日報',[diaryId,date,fieldId,wtIds.join(','),matStr,startT,dur,document.getElementById('d-notes').value,fieldName,wtNames,'',dLit]);
+    await sheetsAppend('作業日報',[diaryId,date,fieldId,wtIds.join(','),matStr,startT,dur,document.getElementById('d-notes').value,fieldName,wtNames,'',dLit,getWeather('d-weather')]);
     if(matInputs.length){
       var rawInv=await fetchS('在庫');
       for(var i=0;i<matInputs.length;i++){
@@ -1949,6 +1971,7 @@ async function openDiaryDetail(id){
     +'<div style="font-size:22px;font-weight:700;color:var(--primary-dark)">'+escH(d[1]||'')+'</div>'
     +(d[8]?'<div style="margin-top:6px"><span style="background:var(--secondary);color:var(--primary-dark);padding:2px 10px;border-radius:10px;font-size:13px;font-weight:600">'+escH(d[8])+'</span></div>':'')
     +'</div>'
+    +(d[12]?'<div class="form-group"><div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:4px">天気</div><div style="font-weight:600">'+weatherIcon(d[12])+' '+escH(d[12])+'</div></div>':'')
     +(d[9]?'<div class="form-group"><div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:4px">作業内容</div><div style="font-weight:600">'+escH(d[9])+'</div></div>':'')
     +timeHtml
     +matHtml
@@ -2004,6 +2027,13 @@ async function openDiaryEdit(id){
     document.getElementById('de-end').value = '';
   }
   document.getElementById('de-notes').value = entry[7]||'';
+  // 天気の選択欄を作り、保存済みの天気を選んだ状態にする
+  document.getElementById('de-weather-list').innerHTML = WEATHERS.map(function(w){
+    return '<label class="weather-item">'
+      + '<input type="radio" name="de-weather" value="'+w[0]+'" onchange="onWeatherChange(\'de-weather\')">'
+      + '<span class="weather-icon">'+w[1]+'</span><span class="weather-label">'+w[0]+'</span></label>';
+  }).join('');
+  setWeather('de-weather', entry[12]||'');
 
   // 写真を読み込む
   editImages = await loadPhotos(id);
@@ -2108,6 +2138,8 @@ async function saveDiaryEdit(){
     // 希釈量はL列。写真URL(K列)を壊さないよう別に書く。
     var eLit = collectLiters('de');
     await sheetsWrite('作業日報','L'+(idx+2),[[eLit]]);
+    // 天気はM列
+    await sheetsWrite('作業日報','M'+(idx+2),[[getWeather('de-weather')]]);
     // 新しい資材を在庫から引く
     for(var i=0;i<matInputs.length;i++){
       var mid=matInputs[i].id;
@@ -2301,6 +2333,7 @@ function renderDiaryHistory(){
       +'<div style="flex:1"><b>'+escH(d[1]||'')+'</b> &nbsp;'
       +(d[8]?'<span style="background:var(--secondary);color:var(--primary-dark);padding:1px 8px;border-radius:10px;font-size:12px;font-weight:600">'+escH(d[8])+'</span>':'')
       +(d[9]?' <span style="color:var(--text-muted);font-size:12px">'+escH(d[9])+'</span>':'')
+      +(d[12]?' <span title="'+escH(d[12])+'">'+weatherIcon(d[12])+'</span>':'')
       +(d[6]?' <span style="color:var(--text-muted);font-size:12px">'+d[6]+'分</span>':'')
       +(d[7]?'<br><small>📝 '+escH(d[7])+'</small>':'')+'</div>'
       +'<button class="btn btn-secondary btn-sm" style="white-space:nowrap;flex-shrink:0" onclick="event.stopPropagation();openDiaryEdit(\''+d[0]+'\')">編集</button>'
