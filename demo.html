@@ -48,7 +48,7 @@ body {
 .tab-btn {
   flex: 1; padding: 8px 2px; border: none; background: none; color: var(--text-muted);
   display: flex; flex-direction: column; align-items: center; gap: 2px;
-  font-size: 9.5px; font-weight: 500; min-height: 60px; justify-content: center;
+  font-size: 9px; font-weight: 500; min-height: 60px; justify-content: center;
   border-top: 3px solid transparent; white-space: nowrap; letter-spacing: -0.3px;
 }
 .tab-btn.active { color: var(--primary); border-top-color: var(--primary); font-weight: 700; background: #f0faf3; }
@@ -139,6 +139,63 @@ body {
 .diary-card small { color: var(--text-muted); font-size: 12px; }
 .toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%); padding:12px 22px; border-radius:8px; color:#fff; font-size:14px; font-weight:600; z-index:9999; box-shadow:0 4px 16px rgba(0,0,0,.2); max-width:calc(100vw - 32px); text-align:center; }
 .no-data { text-align:center; padding:24px; color:var(--text-muted); font-size:13px; }
+/* ── 収穫 ── */
+.hv-stepper { display:flex; align-items:center; gap:9px; }
+.hv-stepper button {
+  width:48px; height:48px; border-radius:10px; border:1.5px solid var(--accent);
+  background:var(--secondary); color:var(--primary-dark); font-size:22px; font-weight:700; flex-shrink:0;
+}
+.hv-stepper input { flex:1; min-width:0; text-align:center; font-size:24px; font-weight:700; }
+.hv-note { font-size:11.5px; color:var(--text-muted); margin-top:5px; line-height:1.6; }
+.hv-calc {
+  background:var(--warning-bg); border:1.5px solid #f0c6a2; border-radius:var(--radius);
+  padding:11px 13px; display:flex; align-items:baseline; justify-content:space-between; gap:8px; margin-bottom:14px;
+}
+.hv-calc .k { font-size:12.5px; color:#8a4416; font-weight:700; }
+.hv-calc .f { font-size:11.5px; color:#8a4416; }
+.hv-calc .v { font-size:27px; font-weight:700; color:#b5541a; }
+.hv-calc .v small { font-size:14px; font-weight:700; margin-left:2px; }
+.hv-rec { display:flex; align-items:center; gap:9px; padding:9px 0; border-bottom:1px solid var(--border); font-size:14px; }
+.hv-rec:last-child { border-bottom:none; }
+.hv-rec .nm { font-weight:600; flex:1; min-width:0; }
+.hv-rec .fd { display:block; font-size:11.5px; color:var(--text-muted); font-weight:400; }
+.hv-rec .bx { font-size:11.5px; color:var(--text-muted); text-align:right; white-space:nowrap; }
+.hv-rec .kg { font-weight:700; color:#b5541a; white-space:nowrap; }
+.hv-daysum { display:flex; justify-content:space-between; align-items:baseline; margin-top:11px; padding-top:11px; border-top:2px solid var(--secondary); }
+.hv-daysum .n { font-size:24px; font-weight:700; color:var(--primary-dark); }
+.hv-tiles { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
+.hv-tile { background:var(--white); border-radius:var(--radius); box-shadow:var(--shadow); padding:11px 9px; text-align:center; }
+.hv-tile .t { font-size:11px; color:var(--text-muted); font-weight:600; }
+.hv-tile .n { font-size:20px; font-weight:700; color:var(--primary-dark); line-height:1.35; }
+.hv-tile .n small { font-size:11px; }
+.hv-chart { display:flex; align-items:flex-end; gap:5px; height:140px; padding-top:6px; }
+.hv-bar { flex:1; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:4px; height:100%; }
+.hv-bar .col { width:100%; background:var(--accent); border-radius:4px 4px 0 0; min-height:2px; }
+.hv-bar.now .col { background:#b5541a; }
+.hv-bar .v { font-size:10px; color:var(--text-muted); white-space:nowrap; letter-spacing:-.4px; }
+.hv-bar .d { font-size:10.5px; color:var(--text-muted); white-space:nowrap; }
+.hv-bar.now .d { color:#b5541a; font-weight:700; }
+.hv-bar .u { font-size:8px; margin-left:.5px; font-weight:400; }
+.hv-brk { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--border); font-size:14px; }
+.hv-brk:last-child { border-bottom:none; }
+.hv-brk .b { font-weight:700; color:var(--primary-dark); white-space:nowrap; }
+.hv-meter { height:6px; border-radius:3px; background:var(--secondary); overflow:hidden; margin-top:4px; }
+.hv-meter i { display:block; height:100%; background:var(--accent); }
+/* 数字は桁をそろえる */
+.hv-calc .v, .hv-tile .n, .hv-daysum .n, .hv-rec .kg, .hv-rec .bx, .hv-bar .v, .hv-brk .b, .hv-stepper input { font-variant-numeric: tabular-nums; }
+
+/* 入口の画面 */
+.gate { position:fixed; inset:0; z-index:8000; background:linear-gradient(160deg, var(--primary-dark), var(--primary));
+  align-items:center; justify-content:center; padding:24px; }
+.gate-box { background:#fff; border-radius:14px; padding:28px 22px; width:100%; max-width:380px; text-align:center;
+  box-shadow:0 10px 40px rgba(0,0,0,.25); }
+.gate-logo { font-size:40px; line-height:1; }
+.gate-app { font-size:13px; color:var(--text-muted); font-weight:700; margin:6px 0 14px; letter-spacing:.05em; }
+.gate-title { font-size:19px; font-weight:700; color:var(--primary-dark); margin-bottom:10px; }
+.gate-msg { font-size:14px; color:var(--text); line-height:1.8; text-align:left; }
+.gate-email { font-size:12px; color:var(--text-muted); margin:10px 0 4px; word-break:break-all; }
+.gate-btn { width:100%; margin-top:12px; }
+.farm-title { font-size:13px; font-weight:500; opacity:.85; margin-left:4px; }
 /* ── 面積測定（地図）── */
 #map { width:100%; height:58vh; min-height:300px; border-radius:var(--radius); border:1.5px solid var(--border); background:#e8ebe8; }
 .map-hint { font-size:12px; color:var(--text-muted); margin:8px 2px; line-height:1.6; }
@@ -198,6 +255,7 @@ body {
 
 <nav class="tab-nav">
   <button class="tab-btn active" id="nav-diary" onclick="switchTab('diary')"><span style="font-size:20px">📋</span><span>作業日報</span></button>
+  <button class="tab-btn" id="nav-harvest" onclick="switchTab('harvest')"><span style="font-size:20px">🧺</span><span>収穫</span></button>
   <button class="tab-btn" id="nav-inventory" onclick="switchTab('inventory')"><span style="font-size:20px">📦</span><span>在庫</span></button>
   <button class="tab-btn" id="nav-history" onclick="switchTab('history')"><span style="font-size:20px">📊</span><span>履歴</span></button>
   <button class="tab-btn" id="nav-add" onclick="switchTab('add')"><span style="font-size:20px">➕</span><span>入庫</span></button>
@@ -308,6 +366,79 @@ body {
   </div>
 </div>
 
+<!-- 収穫 -->
+<div id="tab-harvest" class="tab-content">
+  <div class="card">
+    <div class="card-title">🧺 収穫を記録</div>
+    <div class="grid-2">
+      <div class="form-group"><label class="form-label">収穫日</label><input type="date" id="hv-date" class="form-control" onchange="renderHarvest()"></div>
+      <div class="form-group"><label class="form-label">圃場</label><select id="hv-field" class="form-control"></select></div>
+    </div>
+    <div class="form-group"><label class="form-label">品目</label><select id="hv-crop" class="form-control" onchange="onHvCropChange()"></select>
+      <div id="hv-cnote" class="hv-note" style="display:none">
+        まず品目を登録してください。<a href="javascript:void(0)" onclick="gotoCropMaster()" style="color:var(--primary);font-weight:700">設定 → 品目</a> で、品目名と1箱の重さを登録します。
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">1箱の重さ</label>
+      <select id="hv-w" class="form-control" onchange="onHvWeightChange()"></select>
+      <div id="hv-wnote" class="hv-note"></div>
+      <div id="hv-wother" style="display:none;margin-top:7px">
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="text" id="hv-wval" class="form-control" inputmode="decimal" placeholder="例：3" oninput="normalizeRatioInput(this);onHvCalc()">
+          <span style="font-weight:700;color:var(--text-muted)">kg</span>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">箱数</label>
+      <div class="hv-stepper">
+        <button type="button" onclick="hvStep(-1)" aria-label="箱数を1減らす">−</button>
+        <input type="text" id="hv-box" inputmode="numeric" value="" placeholder="0" aria-label="箱数"
+               oninput="normalizeRatioInput(this);onHvCalc()">
+        <button type="button" onclick="hvStep(1)" aria-label="箱数を1増やす">＋</button>
+        <span style="font-weight:700;color:var(--text-muted)">箱</span>
+      </div>
+    </div>
+    <div class="hv-calc">
+      <div><div class="k">収穫量</div><div class="f" id="hv-formula">—</div></div>
+      <div class="v" id="hv-kg">—</div>
+    </div>
+    <div class="form-group"><label class="form-label">備考</label><input type="text" id="hv-note" class="form-control" placeholder="（任意）"></div>
+    <button class="btn btn-primary" style="width:100%" onclick="saveHarvest()">💾 この収穫を記録する</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📋 <span id="hv-day-title">この日の収穫</span></div>
+    <div id="hv-day-list"></div>
+    <div class="hv-daysum">
+      <span style="font-weight:700">合計</span>
+      <span><span id="hv-day-kg" class="n">0</span> kg　<span id="hv-day-box" style="font-size:12px;color:var(--text-muted)">0箱</span></span>
+    </div>
+  </div>
+
+  <div class="hv-tiles">
+    <div class="hv-tile"><div class="t">今日</div><div class="n" id="hv-t-today">0<small>kg</small></div></div>
+    <div class="hv-tile"><div class="t">今月</div><div class="n" id="hv-t-month">0<small>kg</small></div></div>
+    <div class="hv-tile"><div class="t">累計</div><div class="n" id="hv-t-all">0<small>kg</small></div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📈 この1週間の収穫量<span style="font-size:11.5px;font-weight:500;color:var(--text-muted)">（kg）</span></div>
+    <div class="hv-chart" id="hv-chart"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🌱 品目ごと（今月）</div>
+    <div id="hv-by-crop"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📍 圃場ごと（今月）</div>
+    <div id="hv-by-field"></div>
+  </div>
+</div>
+
 <!-- 在庫 -->
 <div id="tab-inventory" class="tab-content">
   <div class="card">
@@ -378,7 +509,7 @@ body {
       機能はすべて製品版と同じです。自由に登録・編集・削除をお試しください。
     </div>
     <div style="display:flex;gap:8px;margin-bottom:8px">
-      <button class="btn btn-secondary" style="flex:1" onclick="load()">🔄 再読込</button>
+      <button class="btn btn-secondary" style="flex:1" onclick="load(true)">🔄 再読込</button>
       <button class="btn btn-danger" style="flex:1" onclick="resetDemo()">🗑 最初の状態に戻す</button>
     </div>
     <div id="auth-status" style="display:none"></div>
@@ -387,6 +518,7 @@ body {
   <div class="master-tabs">
     <button class="m-tab-btn active" onclick="switchMTab('m-f',this)">圃場</button>
     <button class="m-tab-btn" onclick="switchMTab('m-w',this)">作業</button>
+    <button class="m-tab-btn" onclick="switchMTab('m-c',this)">品目</button>
     <button class="m-tab-btn" onclick="switchMTab('m-m',this)">資材</button>
     <button class="m-tab-btn" onclick="switchMTab('m-map',this)">紐付</button>
   </div>
@@ -460,11 +592,34 @@ body {
         </div>
       </div>
       <div style="margin-bottom:10px">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">最低在庫（これを下回ると在庫画面に「⚠ 不足」と出ます。不要なら空欄）</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="text" id="new-m-min" class="form-control" inputmode="decimal" placeholder="例：20" oninput="normalizeRatioInput(this)" style="flex:1">
+          <span id="new-m-min-unit" style="font-weight:700;color:var(--text-muted);white-space:nowrap;min-width:2em"></span>
+        </div>
+      </div>
+      <div style="margin-bottom:10px">
         <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">この資材を使う作業（あとから「紐付」でも変更できます）</div>
         <div id="new-m-wt" class="check-group"></div>
       </div>
       <button class="btn btn-primary btn-sm" style="width:100%" onclick="addMat()">＋ 資材を追加</button>
       <div id="list-m" style="margin-top:10px"></div>
+    </div>
+  </div>
+  <div id="m-c" class="m-tab-content" style="display:none">
+    <div class="card">
+      <div style="margin-bottom:8px">
+        <input type="text" id="new-c" class="form-control" placeholder="品目名（例：ミニトマト）">
+      </div>
+      <div style="margin-bottom:8px">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">1箱の重さ（よく使う箱の分だけ登録）</div>
+        <div id="new-c-w"></div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">
+          複数登録すると、収穫を記録するときに選べます。
+        </div>
+      </div>
+      <button class="btn btn-primary btn-sm" style="width:100%" onclick="addCrop()">＋ 品目を追加</button>
+      <div id="list-c" style="margin-top:10px"></div>
     </div>
   </div>
   <div id="m-map" class="m-tab-content" style="display:none">
@@ -574,6 +729,31 @@ body {
   </div>
 </div>
 
+<!-- 収穫編集モーダル -->
+<div id="hv-edit-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:5000;padding:16px;overflow-y:auto">
+  <div style="background:white;border-radius:12px;padding:20px;max-width:480px;margin:60px auto;">
+    <div style="font-size:17px;font-weight:700;margin-bottom:16px;color:var(--primary-dark)">🧺 収穫を編集</div>
+    <div class="grid-2">
+      <div class="form-group"><label class="form-label">収穫日</label><input type="date" id="he2-date" class="form-control"></div>
+      <div class="form-group"><label class="form-label">圃場</label><select id="he2-field" class="form-control"></select></div>
+    </div>
+    <div class="form-group"><label class="form-label">品目</label><select id="he2-crop" class="form-control" onchange="onHvEditCropChange()"></select></div>
+    <div class="grid-2">
+      <div class="form-group"><label class="form-label">1箱の重さ（kg）</label>
+        <input type="text" id="he2-w" class="form-control" inputmode="decimal" oninput="normalizeRatioInput(this);onHvEditCalc()"></div>
+      <div class="form-group"><label class="form-label">箱数</label>
+        <input type="text" id="he2-box" class="form-control" inputmode="numeric" oninput="normalizeRatioInput(this);onHvEditCalc()"></div>
+    </div>
+    <div class="hv-calc"><div><div class="k">収穫量</div><div class="f" id="he2-formula">—</div></div><div class="v" id="he2-kg">—</div></div>
+    <div class="form-group"><label class="form-label">備考</label><input type="text" id="he2-note" class="form-control"></div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveHarvestEdit()">💾 保存</button>
+      <button class="btn btn-danger btn-sm" style="min-width:80px" onclick="deleteHarvest()">🗑 削除</button>
+      <button class="btn btn-secondary" style="flex:1" onclick="closeHarvestEdit()">キャンセル</button>
+    </div>
+  </div>
+</div>
+
 <!-- 日報編集モーダル -->
 <div id="diary-edit-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:5000;padding:16px;overflow-y:auto">
   <div style="background:white;border-radius:12px;padding:20px;max-width:480px;margin:40px auto;">
@@ -620,7 +800,7 @@ body {
 //   画面・計算・操作は製品版と完全に同一。
 // ============================================================
 var cfg = { fb:null };
-var state = { fields:[], wts:[], mats:[], mapping:[], inv:[], diary:[], history:[] };
+var state = { fields:[], wts:[], mats:[], mapping:[], inv:[], diary:[], history:[], crops:[], harvest:[] };
 var images = [];
 
 // 製品版と共通のコードから参照されるため、形だけ用意しておく
@@ -653,6 +833,7 @@ function switchTab(id){
   window.scrollTo(0,0);
   // 地図は開かれた時に初めて準備する（起動を軽くするため）
   if(id === 'area') initMap();
+  if(id === 'harvest') renderHarvest();
 }
 
 function switchMTab(id, el){
@@ -680,6 +861,8 @@ window.onload = function(){
   initSampleData();
   document.getElementById('d-date').value  = new Date().toISOString().split('T')[0];
   document.getElementById('a-date').value  = new Date().toISOString().split('T')[0];
+  document.getElementById('hv-date').value = new Date().toISOString().split('T')[0];
+  renderRatioEditor('new-c-w', [], 'weight');   // 品目の「1箱の重さ」の入力欄
 
   // 時間ドロップダウンの選択肢を生成（04:00〜21:45、15分刻み）
   var timeOpts = '<option value="">--</option>';
@@ -770,6 +953,30 @@ function initSampleData(){
     [genId(),daysAgo(2), m4,'使用',500,'','','定植','種子']
   ]);
 
+  // [ID, 品目名, 1箱の重さ（複数可）]
+  var c1=genId(), c2=genId(), c3=genId();
+  _demoWrite('品目',[
+    [c1,'ミニトマト','3,5'],
+    [c2,'きゅうり','4'],
+    [c3,'なす','3,4.5']
+  ]);
+
+  // [ID,日付,圃場ID,品目ID,箱数,1箱kg,合計kg,備考,圃場名,品目名]
+  function hv(d,f,fn,c,cn,box,w,note){
+    return [genId(),daysAgo(d),f,c,box,w,Math.round(box*w*10)/10,note||'',fn,cn];
+  }
+  _demoWrite('収穫',[
+    hv(6, f3,'ハウス1号',c1,'ミニトマト',12,3,''),
+    hv(5, f3,'ハウス1号',c1,'ミニトマト',15,3,'色づきが良い'),
+    hv(4, f1,'北圃場',  c2,'きゅうり',  8, 4,''),
+    hv(3, f3,'ハウス1号',c1,'ミニトマト',18,3,''),
+    hv(2, f1,'北圃場',  c2,'きゅうり', 11, 4,''),
+    hv(2, f2,'南圃場',  c3,'なす',      6, 4.5,''),
+    hv(1, f3,'ハウス1号',c1,'ミニトマト',20,5,'大箱で出荷'),
+    hv(0, f3,'ハウス1号',c1,'ミニトマト',14,3,''),
+    hv(0, f2,'南圃場',  c3,'なす',      9, 3,'')
+  ]);
+
   localStorage.setItem('agridemo_initialized','1');
 }
 
@@ -796,13 +1003,14 @@ function resetDemo(){
 // ============================================================
 // データ読み込み
 // ============================================================
-async function load(){
+async function load(force){
   showLoad();
   try {
-    var sheets = ['圃場','作業内容','資材マスタ','作業内容_資材','在庫','作業日報','入出庫'];
+    var sheets = ['圃場','作業内容','資材マスタ','作業内容_資材','在庫','作業日報','入出庫','品目','収穫'];
     var res = await Promise.all(sheets.map(fetchS));
     state.fields=res[0]; state.wts=res[1]; state.mats=res[2];
     state.mapping=res[3]; state.inv=res[4]; state.diary=res[5]; state.history=res[6];
+    state.crops=res[7]; state.harvest=res[8];
     render();
   } catch(e){
     toast('読み込みエラー: '+e.message,'error');
@@ -821,7 +1029,7 @@ async function load(){
 //   保存形式: localStorage["agridemo_圃場"] = [[行],[行],...] のJSON
 // ============================================================
 var DEMO_PREFIX = 'agridemo_';
-var DEMO_SHEETS = ['圃場','作業内容','資材マスタ','作業内容_資材','在庫','作業日報','入出庫'];
+var DEMO_SHEETS = ['圃場','作業内容','資材マスタ','作業内容_資材','在庫','作業日報','入出庫','品目','収穫'];
 
 function _demoRead(sheet){
   try { return JSON.parse(localStorage.getItem(DEMO_PREFIX+sheet) || '[]'); }
@@ -874,6 +1082,32 @@ async function sheetsDeleteRow(sheet, rowIndex){
   rows.splice(idx, 1);
   _demoWrite(sheet, rows);
   return { ok:true };
+}
+
+// 指定したセルの数値を増減する（在庫数に使う）
+async function sheetsIncrement(sheet, a1, delta, current){
+  var pos = _parseA1(a1);
+  var rows = _demoRead(sheet), idx = pos.row - 2;
+  if(idx < 0 || idx >= rows.length) throw new Error('更新対象が見つかりません: '+sheet+' '+a1);
+  var row = rows[idx];
+  while(row.length <= pos.col) row.push('');
+  row[pos.col] = Math.round(((parseFloat(row[pos.col])||0) + delta)*1000)/1000;
+  _demoWrite(sheet, rows);
+  return { ok:true };
+}
+
+// ============================================================
+// 在庫の増減（入庫は＋、使用は−）
+//   以前は「在庫を読む → 計算 → 書き戻す」方式で、別の端末とほぼ同時に操作すると
+//   片方の変更が消えることがあった。増減量だけを送る方式にしている。
+// ============================================================
+async function stockAdd(matId, delta){
+  delta = Math.round((parseFloat(delta)||0)*1000)/1000;
+  if(!delta || !matId) return;
+  var rows = await fetchS('在庫');
+  var idx = rows.findIndex(function(r){ return r[0]===matId; });
+  if(idx >= 0) await sheetsIncrement('在庫', 'B'+(idx+2), delta, rows[idx][1]);
+  else         await sheetsAppend('在庫', [matId, delta, 0]);   // 在庫の行がまだ無い資材
 }
 
 // ============================================================
@@ -939,7 +1173,7 @@ function render(){
       : state.inv.map(function(i){
           var m = state.mats.find(function(x){ return x[0]===i[0]; });
           if(!m) return ''; // 資材マスタに存在しない行はスキップ
-          var low = Number(i[1]) < Number(i[2]);
+          var low = Number(i[2]) > 0 && Number(i[1]) < Number(i[2]);   // 最低在庫が未設定(0)なら判定しない
           return '<tr class="'+(low?'row-low':'')+'"><td>'+escH(m[1])+'</td>'
             +'<td>'+formatStockTotal(i[1], m)+'</td><td>'+formatStockTotal(i[2], m)+'</td><td>'+(low?'⚠ 不足':'✓ OK')+'</td></tr>';
         }).join('');
@@ -1007,6 +1241,17 @@ function render(){
           +'<button class="btn btn-secondary btn-sm" onclick="openMapEdit(\''+w[0]+'\')">編集</button>'
           +'</div>';
       }).join('');
+  document.getElementById('list-c').innerHTML =
+    state.crops.map(function(c){
+      var ws = cropWeights(c);
+      return '<div class="m-list-item"><div><div style="font-weight:600">'+escH(c[1])+'</div>'
+        +'<div style="font-size:12px;color:var(--text-muted)">1箱: '
+        +(ws.length ? ws.join('kg ／ ')+'kg' : '未設定')+'</div></div>'
+        +'<div style="display:flex;gap:6px">'
+        +'<button class="btn btn-secondary btn-sm" onclick="openEdit(\'品目\',\''+c[0]+'\')">編集</button>'
+        +'<button class="btn btn-danger btn-sm" onclick="delM(\'品目\',\''+c[0]+'\')">削除</button></div></div>';
+    }).join('') || '<div class="no-data">登録なし</div>';
+  renderHarvest();
 }
 
 function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -1032,7 +1277,7 @@ function formatStock(total, mat){
 // 例: 150kg（「7袋 + 10kg（150kg）」とはしない）
 function formatStockTotal(total, mat){
   var unit = mat && mat[2] ? mat[2] : '';
-  return (parseFloat(total)||0) + unit;
+  return Math.round((parseFloat(total)||0)*1000)/1000 + unit;
 }
 
 function _matStep(range){
@@ -1246,6 +1491,7 @@ var _deRatios = {};   // 編集画面で復元する希釈倍率
 // 希釈倍率は液体（mL・L）の資材だけに使うため、単位に応じて欄を出し入れする
 function onNewMatUnitChange(){
   var u = document.getElementById('new-m-unit').value;
+  var mu = document.getElementById('new-m-min-unit'); if(mu) mu.textContent = u;
   var w = document.getElementById('new-m-dil-wrap');
   if(!w) return;
   var show = isDilutableUnit(u);
@@ -1300,28 +1546,37 @@ function normalizeRatioInput(el){
   if(el.value !== v) el.value = v;
 }
 
-function ratioRowHtml(val){
+// 単位などの見た目だけを差し替えて、収穫の「1箱の重さ」にも同じ部品を使う
+var RATIO_KINDS = {
+  ratio:  { unit:'倍',  ph:'例：1000', add:'＋ 倍率を追加' },
+  weight: { unit:'kg',  ph:'例：3',    add:'＋ 重さを追加' }
+};
+function ratioRowHtml(val, kind){
+  var k = RATIO_KINDS[kind] || RATIO_KINDS.ratio;
   return '<div class="ratio-row">'
-    + '<input type="text" inputmode="numeric" class="form-control ratio-input" value="'+escH(val||'')+'"'
-    +   ' placeholder="例：1000" oninput="normalizeRatioInput(this)">'
-    + '<span class="ratio-unit">倍</span>'
+    + '<input type="text" inputmode="decimal" class="form-control ratio-input" value="'+escH(val||'')+'"'
+    +   ' placeholder="'+k.ph+'" oninput="normalizeRatioInput(this)">'
+    + '<span class="ratio-unit">'+k.unit+'</span>'
     + '<button type="button" class="ratio-del" onclick="removeRatioRow(this)" aria-label="削除">✕</button>'
     + '</div>';
 }
 
 // 倍率の入力欄を組み立てる。値が無ければ空の欄を1つ置く。
-function renderRatioEditor(containerId, values){
+function renderRatioEditor(containerId, values, kind){
   var el = document.getElementById(containerId);
   if(!el) return;
+  var k = RATIO_KINDS[kind] ? kind : 'ratio';
+  el.setAttribute('data-kind', k);
   var vs = (values && values.length) ? values : [''];
-  el.innerHTML = '<div class="ratio-rows">' + vs.map(ratioRowHtml).join('') + '</div>'
-    + '<button type="button" class="btn btn-secondary btn-sm ratio-add" onclick="addRatioRow(\'' + containerId + '\')">＋ 倍率を追加</button>';
+  el.innerHTML = '<div class="ratio-rows">' + vs.map(function(v){ return ratioRowHtml(v, k); }).join('') + '</div>'
+    + '<button type="button" class="btn btn-secondary btn-sm ratio-add" onclick="addRatioRow(\'' + containerId + '\')">'+RATIO_KINDS[k].add+'</button>';
 }
 
 function addRatioRow(containerId){
   var rows = document.querySelector('#'+containerId+' .ratio-rows');
   if(!rows) return;
-  rows.insertAdjacentHTML('beforeend', ratioRowHtml(''));
+  var host = document.getElementById(containerId);
+  rows.insertAdjacentHTML('beforeend', ratioRowHtml('', host ? host.getAttribute('data-kind') : 'ratio'));
   var ins = rows.querySelectorAll('.ratio-input');
   ins[ins.length-1].focus();
 }
@@ -1330,7 +1585,10 @@ function removeRatioRow(btn){
   var rows = btn.closest('.ratio-rows');
   btn.closest('.ratio-row').remove();
   // 最低1つは残す（全部消えると入力できなくなるため）
-  if(rows && !rows.querySelector('.ratio-row')) rows.insertAdjacentHTML('beforeend', ratioRowHtml(''));
+  if(rows && !rows.querySelector('.ratio-row')){
+    var host = rows.parentElement;
+    rows.insertAdjacentHTML('beforeend', ratioRowHtml('', host ? host.getAttribute('data-kind') : 'ratio'));
+  }
 }
 
 // 入力された倍率をまとめて取り出す（保存形式はこれまでどおりカンマ区切り）
@@ -1564,11 +1822,15 @@ async function removePhotos(id){
 //   Storageには「オフラインなら後で送る」という仕組みが無いため、
 //   未送信の日報IDを自前で控えておき、電波復帰時にまとめて送る。
 // ------------------------------------------------------------
+// 送信待ちの写真の控え。農場ごとに分け、同じ端末で別の農場の写真が混ざらないようにする。
+function _pendingKey(){
+  return 'agri_photo_pending' + ((typeof FARM_ID!=='undefined' && FARM_ID) ? '_'+FARM_ID : '');
+}
 function _pendingIds(){
-  try { return JSON.parse(localStorage.getItem('agri_photo_pending')||'[]'); } catch(e){ return []; }
+  try { return JSON.parse(localStorage.getItem(_pendingKey())||'[]'); } catch(e){ return []; }
 }
 function _setPendingIds(a){
-  try { localStorage.setItem('agri_photo_pending', JSON.stringify(a)); } catch(e){}
+  try { localStorage.setItem(_pendingKey(), JSON.stringify(a)); } catch(e){}
 }
 // 体験版は外部にアップロードしない。写真は端末内(IndexedDB)に置くだけ。
 function _queuePhotoUpload(id){}
@@ -1662,16 +1924,12 @@ async function saveDiary(){
     var diaryId=genId();
     var dLit = collectLiters('d');
     await sheetsAppend('作業日報',[diaryId,date,fieldId,wtIds.join(','),matStr,startT,dur,document.getElementById('d-notes').value,fieldName,wtNames,'',dLit,getWeather('d-weather')]);
-    if(matInputs.length){
-      var rawInv=await fetchS('在庫');
-      for(var i=0;i<matInputs.length;i++){
-        var mid=matInputs[i].id;
-        var amt=parseFloat(matInputs[i].value)||0;
-        var mat2=state.mats.find(function(x){ return x[0]===mid; });
-        await sheetsAppend('入出庫',[genId(),date,mid,'使用',amt,'','',wtNames,mat2?mat2[1]:'']);
-        var idx=rawInv.findIndex(function(r){ return r[0]===mid; });
-        if(idx>=0) await sheetsWrite('在庫','B'+(idx+2),[[(parseFloat(rawInv[idx][1])||0)-amt]]);
-      }
+    for(var i=0;i<matInputs.length;i++){
+      var mid=matInputs[i].id;
+      var amt=parseFloat(matInputs[i].value)||0;
+      var mat2=state.mats.find(function(x){ return x[0]===mid; });
+      await sheetsAppend('入出庫',[genId(),date,mid,'使用',amt,'','',wtNames,mat2?mat2[1]:'']);
+      await stockAdd(mid, -amt);
     }
     // 写真は在庫更新が終わってから保存する（容量超過で在庫処理を中断させない）
     var photoOk = images.length ? await savePhotosSafe(diaryId, images) : true;
@@ -1701,10 +1959,7 @@ async function saveAdd(){
     var mat=state.mats.find(function(m){ return m[0]===matId; });
     // 入出庫シートに記録: [ID,日付,資材ID,種別,数量(基本単位),単価,金額,備考,資材名]
     await sheetsAppend('入出庫',[genId(),date,matId,'購入',amt,price,total,note,mat?mat[1]:'']);
-    var rawInv=await fetchS('在庫');
-    var idx=rawInv.findIndex(function(r){ return r[0]===matId; });
-    if(idx>=0) await sheetsWrite('在庫','B'+(idx+2),[[(parseFloat(rawInv[idx][1])||0)+amt]]);
-    else await sheetsAppend('在庫',[matId,amt,0]);
+    await stockAdd(matId, amt);
     await load();
     onAddMatChange(); // 数量入力欄をリセット
     document.getElementById('a-price').value='';
@@ -1744,7 +1999,8 @@ async function addMat(){
     var dil = ratioEditorValue('new-m-dil');
     var wtIds = Array.from(document.querySelectorAll('#new-m-wt input:checked')).map(function(i){ return i.value; });
     await sheetsAppend('資材マスタ',[id,name,unit,qty,setunit,dil]);
-    try { await sheetsAppend('在庫',[id,0,0]); } catch(e2){}
+    var minStock = parseFloat(toHalfWidth(document.getElementById('new-m-min').value))||0;
+    try { await sheetsAppend('在庫',[id,0,minStock]); } catch(e2){}
     // 選ばれた作業内容との紐付けを同時に登録する
     for(var wi=0; wi<wtIds.length; wi++){
       await sheetsAppend('作業内容_資材',[wtIds[wi], id]);
@@ -1753,6 +2009,7 @@ async function addMat(){
     document.getElementById('new-m-unit').value='';
     document.getElementById('new-m-qty').value='';
     document.getElementById('new-m-setunit').value='';
+    document.getElementById('new-m-min').value='';
     renderRatioEditor('new-m-dil', []);
     document.querySelectorAll('#new-m-wt input:checked').forEach(function(i){
       i.checked=false; onNewMatWtChange(i);
@@ -1835,11 +2092,21 @@ function openEdit(sheetName,id){
     fieldDefs=[{label:'資材名',val:item[1]||'',type:'text'},{label:'計量単位',val:item[2]||'',type:'select',options:['','kg','g','L','mL','個','粒','枚','本','m','cm']},{label:'1セット量',val:item[3]||'',type:'number'},{label:'セット単位',val:item[4]||'',type:'select',options:['','袋','個','本','枚','箱','束','缶','ボトル']}];
     // 希釈倍率は液体（mL・L）のときだけ編集できるようにする
     if(isDilutableUnit(item[2]||'')) fieldDefs.push({label:'希釈倍率（不要なら空欄）',val:item[5]||'',type:'ratios'});
+    // 最低在庫は資材マスタではなく在庫シートの3列目に持っている
+    var invRow = state.inv.find(function(r){ return r[0]===id; });
+    fieldDefs.push({label:'最低在庫'+(item[2]?'（'+item[2]+'）':'')+'　下回ると「⚠ 不足」', val: invRow ? (invRow[2]||'') : '', type:'decimal', store:'minStock'});
+  } else if(sheetName==='品目'){
+    item=state.crops.find(function(c){ return c[0]===id; }); if(!item) return;
+    // 重さを変えても、すでに記録した収穫量は変わらない（記録にその時の重さを残しているため）
+    fieldDefs=[{label:'品目名',val:item[1]||'',type:'text'},
+               {label:'1箱の重さ（kg）',val:item[2]||'',type:'ratios',kind:'weight'}];
   } else return;
   _editCtx={sheetName:sheetName,id:id,fieldDefs:fieldDefs};
   document.getElementById('edit-modal-title').textContent=sheetName+'を編集';
   document.getElementById('edit-modal-body').innerHTML=fieldDefs.map(function(f,i){
     if(f.type==='ratios') return '<div class="form-group"><label class="form-label">'+f.label+'</label><div id="ef-'+i+'"></div></div>';
+    // 数字の欄は number 型にしない（全角で入れると値が黙って空になるため）。数字キーパッドは出す。
+    if(f.type==='decimal') return '<div class="form-group"><label class="form-label">'+f.label+'</label><input type="text" inputmode="decimal" id="ef-'+i+'" class="form-control" value="'+escH(f.val)+'" oninput="normalizeRatioInput(this)"></div>';
     if(f.type==='select') return '<div class="form-group"><label class="form-label">'+f.label+'</label><select id="ef-'+i+'" class="form-control">'+f.options.map(function(o){ return '<option value="'+o+'"'+(o===f.val?' selected':'')+'>'+o+'</option>'; }).join('')+'</select></div>';
     return '<div class="form-group"><label class="form-label">'+f.label+'</label><input type="'+f.type+'" id="ef-'+i+'" class="form-control" value="'+escH(f.val)+'"></div>';
   }).join('');
@@ -1847,7 +2114,7 @@ function openEdit(sheetName,id){
   fieldDefs.forEach(function(f,i){
     if(f.type==='ratios'){
       var vs = toHalfWidth(f.val).split(/[,\/\s]+/).filter(Boolean);
-      renderRatioEditor('ef-'+i, vs);
+      renderRatioEditor('ef-'+i, vs, f.kind);
     }
   });
   document.getElementById('edit-modal').style.display='block';
@@ -1857,8 +2124,10 @@ function closeEditModal(){ document.getElementById('edit-modal').style.display='
 
 async function saveEdit(){
   if(!_editCtx) return;
-  var vals=_editCtx.fieldDefs.map(function(f,i){
-    return f.type==='ratios' ? ratioEditorValue('ef-'+i) : document.getElementById('ef-'+i).value.trim();
+  var vals=[], minStock=null;
+  _editCtx.fieldDefs.forEach(function(f,i){
+    if(f.store==='minStock'){ minStock = parseFloat(toHalfWidth(document.getElementById('ef-'+i).value))||0; return; }
+    vals.push(f.type==='ratios' ? ratioEditorValue('ef-'+i) : document.getElementById('ef-'+i).value.trim());
   });
   if(!vals[0]){ toast('名前を入力してください','error'); return; }
   showLoad();
@@ -1867,6 +2136,12 @@ async function saveEdit(){
     var idx=data.findIndex(function(r){ return r[0]===_editCtx.id; });
     if(idx<0){ toast('対象データが見つかりません','error'); hideLoad(); return; }
     await sheetsWrite(_editCtx.sheetName,'B'+(idx+2)+':'+String.fromCharCode(65+vals.length)+(idx+2),[vals]);
+    if(minStock!==null){
+      var inv=await fetchS('在庫');
+      var ii=inv.findIndex(function(r){ return r[0]===_editCtx.id; });
+      if(ii>=0) await sheetsWrite('在庫','C'+(ii+2),[[minStock]]);
+      else await sheetsAppend('在庫',[_editCtx.id,0,minStock]);
+    }
     closeEditModal(); await load(); toast('更新しました');
   } catch(e){ toast('更新エラー: '+e.message,'error'); }
   hideLoad();
@@ -2118,17 +2393,13 @@ async function saveDiaryEdit(){
   try {
     // 元エントリの在庫を戻す → 新しい量で引く
     var orig=state.diary.find(function(d){ return d[0]===_diaryEditId; });
-    var rawInv=await fetchS('在庫');
     // 元の資材を在庫に戻す
     if(orig&&orig[4]){
       var _pairs=orig[4].split(',').filter(Boolean);
       for(var _j=0;_j<_pairs.length;_j++){
         var _p=_pairs[_j].split(':'); if(_p.length!==2) continue;
-        var _mid=_p[0], _amt=parseFloat(_p[1])||0;
-        var _ii=rawInv.findIndex(function(r){ return r[0]===_mid; });
-        if(_ii>=0) await sheetsWrite('在庫','B'+(_ii+2),[[(parseFloat(rawInv[_ii][1])||0)+_amt]]);
+        await stockAdd(_p[0], parseFloat(_p[1])||0);
       }
-      rawInv=await fetchS('在庫'); // 在庫を再取得（全書き込み完了後）
     }
     // シート行を更新
     var data=await fetchS('作業日報');
@@ -2142,10 +2413,7 @@ async function saveDiaryEdit(){
     await sheetsWrite('作業日報','M'+(idx+2),[[getWeather('de-weather')]]);
     // 新しい資材を在庫から引く
     for(var i=0;i<matInputs.length;i++){
-      var mid=matInputs[i].id;
-      var amt=parseFloat(matInputs[i].value)||0;
-      var ri=rawInv.findIndex(function(r){ return r[0]===mid; });
-      if(ri>=0) await sheetsWrite('在庫','B'+(ri+2),[[(parseFloat(rawInv[ri][1])||0)-amt]]);
+      await stockAdd(matInputs[i].id, -(parseFloat(matInputs[i].value)||0));
     }
     // 写真を保存（0枚なら削除）。0枚にした場合はK列のURLも消す。
     var photoOk = true;
@@ -2171,13 +2439,11 @@ async function deleteDiaryEntry(){
     // 資材を在庫に戻す
     var orig=state.diary.find(function(d){ return d[0]===_diaryEditId; });
     if(orig&&orig[4]){
-      var rawInv=await fetchS('在庫');
-      orig[4].split(',').forEach(async function(s){
-        var p=s.split(':'); if(p.length!==2) return;
-        var mid=p[0], amt=parseFloat(p[1])||0;
-        var idx=rawInv.findIndex(function(r){ return r[0]===mid; });
-        if(idx>=0) await sheetsWrite('在庫','B'+(idx+2),[[(parseFloat(rawInv[idx][1])||0)+amt]]);
-      });
+      var _dp=orig[4].split(',').filter(Boolean);
+      for(var _k=0;_k<_dp.length;_k++){
+        var p=_dp[_k].split(':'); if(p.length!==2) continue;
+        await stockAdd(p[0], parseFloat(p[1])||0);
+      }
     }
     var data=await fetchS('作業日報');
     var idx=data.findIndex(function(r){ return r[0]===_diaryEditId; });
@@ -2427,20 +2693,10 @@ async function saveHistoryEdit(){
   try {
     var orig = state.history.find(function(r){ return r[0]===_histEditId; });
     var mat  = state.mats.find(function(m){ return m[0]===matId; });
-    // 在庫を元に戻してから新しい数量を反映
-    var rawInv = await fetchS('在庫');
+    // 元の操作を打ち消してから、新しい数量を反映する
     if(orig){
       var origAmt = parseFloat(orig[4])||0;
-      var origType = orig[3];
-      var origMid  = orig[2];
-      var oi = rawInv.findIndex(function(r){ return r[0]===origMid; });
-      if(oi>=0){
-        var cur = parseFloat(rawInv[oi][1])||0;
-        // 元の操作を打ち消す
-        var reverted = origType==='購入' ? cur-origAmt : cur+origAmt;
-        await sheetsWrite('在庫','B'+(oi+2),[[reverted]]);
-        rawInv = await fetchS('在庫');
-      }
+      await stockAdd(orig[2], orig[3]==='購入' ? -origAmt : origAmt);
     }
     // 履歴行を更新: B〜I列
     var data = await fetchS('入出庫');
@@ -2448,12 +2704,7 @@ async function saveHistoryEdit(){
     if(idx<0){ toast('履歴が見つかりません','error'); hideLoad(); return; }
     await sheetsWrite('入出庫','B'+(idx+2)+':I'+(idx+2),[[date,matId,type,amt,price,total,note,mat?mat[1]:'']]);
     // 新しい在庫数量を反映
-    var ni = rawInv.findIndex(function(r){ return r[0]===matId; });
-    if(ni>=0){
-      var ncur = parseFloat(rawInv[ni][1])||0;
-      var newVal = type==='購入' ? ncur+amt : ncur-amt;
-      await sheetsWrite('在庫','B'+(ni+2),[[newVal]]);
-    }
+    await stockAdd(matId, type==='購入' ? amt : -amt);
     closeHistoryEditModal();
     await load();
     toast('履歴を更新しました');
@@ -2469,15 +2720,7 @@ async function deleteHistoryEntry(){
     var orig = state.history.find(function(r){ return r[0]===_histEditId; });
     if(orig){
       var origAmt  = parseFloat(orig[4])||0;
-      var origType = orig[3];
-      var origMid  = orig[2];
-      var rawInv = await fetchS('在庫');
-      var oi = rawInv.findIndex(function(r){ return r[0]===origMid; });
-      if(oi>=0){
-        var cur = parseFloat(rawInv[oi][1])||0;
-        var reverted = origType==='購入' ? cur-origAmt : cur+origAmt;
-        await sheetsWrite('在庫','B'+(oi+2),[[reverted]]);
-      }
+      await stockAdd(orig[2], orig[3]==='購入' ? -origAmt : origAmt);
     }
     var data = await fetchS('入出庫');
     var idx  = data.findIndex(function(r){ return r[0]===_histEditId; });
@@ -2868,6 +3111,276 @@ function gotoSearchResult(i){
 }
 
 // ============================================================
+// 収穫・収量
+//   品目ごとに「1箱の重さ」を登録しておき、日報とは別に収穫を記録する。
+//     収穫量 = 箱数 × 1箱の重さ
+//   記録には、そのとき使った1箱の重さも一緒に残す。あとで重さの登録を
+//   変えても、過去の記録の収穫量が変わらないようにするため。
+//
+//   収穫の1行: [ID, 日付, 圃場ID, 品目ID, 箱数, 1箱の重さ, 収穫量, 備考, 圃場名, 品目名]
+// ============================================================
+
+// 品目に登録された「1箱の重さ」の一覧（資材の希釈倍率と同じ書き方）
+function cropWeights(c){
+  if(!c) return [];
+  return toHalfWidth(c[2])
+    .split(/[,\/\s]+/)
+    .map(function(x){ return parseFloat(x)||0; })
+    .filter(function(x){ return x > 0; });
+}
+function cropById(id){ return state.crops.find(function(c){ return c[0]===id; }); }
+function round1(n){ return Math.round((parseFloat(n)||0)*10)/10; }
+function hvNum(v){ return round1(v).toLocaleString('ja-JP'); }
+
+// ── 記録する ─────────────────────────────
+function onHvCropChange(){
+  var c = cropById(document.getElementById('hv-crop').value);
+  var ws = cropWeights(c);
+  var sel = document.getElementById('hv-w');
+  sel.innerHTML = ws.map(function(w,i){
+      return '<option value="'+w+'"'+(i?'':' selected')+'>'+w+'kg</option>';
+    }).join('') + '<option value="other">その他（この記録だけ）</option>';
+  document.getElementById('hv-wnote').textContent = !c ? ''
+    : ws.length > 1 ? escH(c[1])+'に登録した重さ：'+ws.join('kg ／ ')+'kg'
+    : ws.length === 1 ? escH(c[1])+'の1箱は '+ws[0]+'kg で登録されています'
+    : escH(c[1])+'に1箱の重さが登録されていません。「その他」で入力するか、設定→品目で登録してください';
+  if(!ws.length) sel.value = 'other';
+  onHvWeightChange();
+}
+function onHvWeightChange(){
+  var other = document.getElementById('hv-w').value === 'other';
+  document.getElementById('hv-wother').style.display = other ? 'block' : 'none';
+  onHvCalc();
+}
+function hvBoxKg(){
+  var sel = document.getElementById('hv-w');
+  if(!sel) return 0;
+  if(sel.value === 'other') return round1(toHalfWidth(document.getElementById('hv-wval').value));
+  return parseFloat(sel.value)||0;
+}
+function hvBoxes(){
+  var n = parseInt(toHalfWidth((document.getElementById('hv-box')||{}).value), 10);
+  return isNaN(n) ? 0 : n;
+}
+function onHvCalc(){
+  var n = hvBoxes(), w = hvBoxKg();
+  document.getElementById('hv-formula').textContent = (n && w) ? n+'箱 × '+w+'kg' : '箱数と1箱の重さを入れてください';
+  document.getElementById('hv-kg').innerHTML = (n && w) ? hvNum(n*w)+'<small>kg</small>' : '—';
+}
+function hvStep(d){
+  var el = document.getElementById('hv-box');
+  el.value = Math.max(0, hvBoxes() + d);
+  onHvCalc();
+}
+
+async function saveHarvest(){
+  var date   = document.getElementById('hv-date').value;
+  var fieldS = document.getElementById('hv-field');
+  var cropS  = document.getElementById('hv-crop');
+  var boxes  = hvBoxes(), w = hvBoxKg();
+  if(!date){ toast('収穫日を入力してください','error'); return; }
+  if(!fieldS.value){ toast('圃場を選択してください','error'); return; }
+  if(!cropS.value){ toast('品目を選択してください。設定→品目で登録できます','error'); return; }
+  if(!boxes){ toast('箱数を入力してください','error'); return; }
+  if(!w){ toast('1箱の重さを入力してください','error'); return; }
+  showLoad();
+  try {
+    var fieldName = fieldS.options[fieldS.selectedIndex] ? fieldS.options[fieldS.selectedIndex].text : '';
+    var crop = cropById(cropS.value);
+    await sheetsAppend('収穫',[genId(),date,fieldS.value,cropS.value,boxes,w,round1(boxes*w),
+                               document.getElementById('hv-note').value.trim(), fieldName, crop?crop[1]:'']);
+    document.getElementById('hv-box').value='';
+    document.getElementById('hv-note').value='';
+    onHvCalc();
+    await load();
+    toast('収穫 '+hvNum(boxes*w)+'kg を記録しました');
+  } catch(e){ toast('保存エラー: '+e.message,'error'); }
+  hideLoad();
+}
+
+// ── 画面の表示 ───────────────────────────
+function renderHarvest(){
+  var dateEl = document.getElementById('hv-date');
+  if(!dateEl) return;
+  if(!dateEl.value) dateEl.value = new Date().toISOString().split('T')[0];
+
+  // 圃場・品目の選択肢（選択中の値は保つ）
+  var f = document.getElementById('hv-field'), pf = f.value;
+  f.innerHTML = '<option value="">-- 圃場を選択 --</option>'+
+    state.fields.map(function(x){ return '<option value="'+x[0]+'">'+escH(x[1])+'</option>'; }).join('');
+  f.value = pf;
+  var c = document.getElementById('hv-crop'), pc = c.value;
+  c.innerHTML = state.crops.length
+    ? state.crops.map(function(x){ return '<option value="'+x[0]+'">'+escH(x[1])+'</option>'; }).join('')
+    : '<option value="">（品目が未登録です）</option>';
+  c.value = pc || (state.crops[0] ? state.crops[0][0] : '');
+  document.getElementById('hv-cnote').style.display = state.crops.length ? 'none' : 'block';
+  // 日付を変えただけのときは、選んでいた1箱の重さを保つ。
+  // 品目が変わったとき（未登録から登録された場合も含む）は、その品目の重さに戻す。
+  var keepW = (pc && pc === c.value) ? document.getElementById('hv-w').value : '';
+  onHvCropChange();
+  var w = document.getElementById('hv-w');
+  if(keepW && Array.from(w.options).some(function(o){ return o.value===keepW; })){
+    w.value = keepW; onHvWeightChange();
+  }
+
+  var today = new Date().toISOString().split('T')[0];
+  var day   = dateEl.value || today;
+  var month = day.slice(0,7);
+
+  // その日の記録
+  var rows = state.harvest.filter(function(r){ return r[1]===day; });
+  var dp = day.split('-');
+  document.getElementById('hv-day-title').textContent = (parseInt(dp[1],10)||0)+'月'+(parseInt(dp[2],10)||0)+'日の収穫';
+  document.getElementById('hv-day-list').innerHTML = rows.length ? rows.map(function(r){
+    return '<div class="hv-rec" onclick="openHarvestEdit(\''+r[0]+'\')" style="cursor:pointer">'
+      + '<span class="nm">'+escH(r[9]||'')+'<span class="fd">'+escH(r[8]||'')+(r[7]?'　📝 '+escH(r[7]):'')+'</span></span>'
+      + '<span class="bx">'+hvNum(r[4])+'箱<br>'+hvNum(r[5])+'kg箱</span>'
+      + '<span class="kg">'+hvNum(r[6])+'kg</span></div>';
+  }).join('') : '<div class="no-data">この日の収穫はまだありません</div>';
+  var dayKg = rows.reduce(function(a,r){ return a + (parseFloat(r[6])||0); }, 0);
+  var dayBx = rows.reduce(function(a,r){ return a + (parseFloat(r[4])||0); }, 0);
+  document.getElementById('hv-day-kg').textContent  = hvNum(dayKg);
+  document.getElementById('hv-day-box').textContent = hvNum(dayBx)+'箱';
+
+  // 今日・今月・累計
+  var sum = function(list){ return list.reduce(function(a,r){ return a+(parseFloat(r[6])||0); },0); };
+  document.getElementById('hv-t-today').innerHTML = hvNum(sum(state.harvest.filter(function(r){ return r[1]===today; })))+'<small>kg</small>';
+  document.getElementById('hv-t-month').innerHTML = hvNum(sum(state.harvest.filter(function(r){ return String(r[1]).slice(0,7)===today.slice(0,7); })))+'<small>kg</small>';
+  document.getElementById('hv-t-all').innerHTML   = hvNum(sum(state.harvest))+'<small>kg</small>';
+
+  // この1週間（今日を右端に）
+  var days = [];
+  for(var i=6;i>=0;i--){
+    var d = new Date(); d.setDate(d.getDate()-i);
+    var key = d.toISOString().split('T')[0];
+    days.push({ key:key, label:String(d.getDate()),
+                kg: sum(state.harvest.filter(function(r){ return r[1]===key; })) });
+  }
+  var max = Math.max.apply(null, days.map(function(d){ return d.kg; }).concat([1]));
+  document.getElementById('hv-chart').innerHTML = days.map(function(d,i){
+    return '<div class="hv-bar'+(i===6?' now':'')+'">'
+      + '<span class="v">'+(d.kg? hvNum(d.kg)+'<span class="u">kg</span>' : '')+'</span>'
+      + '<span class="col" style="height:'+Math.round(d.kg/max*86)+'%"></span>'
+      + '<span class="d">'+d.label+'<span class="u">日</span></span></div>';
+  }).join('');
+
+  // 今月の内訳
+  var mrows = state.harvest.filter(function(r){ return String(r[1]).slice(0,7)===month; });
+  function breakdown(el, keyIdx, nameIdx){
+    var map = {};
+    mrows.forEach(function(r){
+      var k = r[keyIdx]||'', nm = r[nameIdx]||'（未設定）';
+      if(!map[k]) map[k] = { name:nm, kg:0 };
+      map[k].kg += parseFloat(r[6])||0;
+    });
+    var list = Object.keys(map).map(function(k){ return map[k]; }).sort(function(a,b){ return b.kg-a.kg; });
+    var top = list.length ? list[0].kg : 1;
+    document.getElementById(el).innerHTML = list.length ? list.map(function(x){
+      return '<div class="hv-brk"><span style="flex:1;min-width:0">'+escH(x.name)
+        + '<div class="hv-meter"><i style="width:'+Math.round(x.kg/top*100)+'%"></i></div></span>'
+        + '<span class="b">'+hvNum(x.kg)+'kg</span></div>';
+    }).join('') : '<div class="no-data">今月の収穫はまだありません</div>';
+  }
+  breakdown('hv-by-crop', 3, 9);
+  breakdown('hv-by-field', 2, 8);
+}
+
+// ── 収穫の編集 ───────────────────────────
+var _hvEditId = null;
+function openHarvestEdit(id){
+  var r = state.harvest.find(function(x){ return x[0]===id; });
+  if(!r) return;
+  _hvEditId = id;
+  document.getElementById('he2-date').value = r[1]||'';
+  document.getElementById('he2-field').innerHTML = '<option value="">-- 圃場を選択 --</option>'+
+    state.fields.map(function(f){ return '<option value="'+f[0]+'"'+(f[0]===r[2]?' selected':'')+'>'+escH(f[1])+'</option>'; }).join('');
+  document.getElementById('he2-crop').innerHTML =
+    state.crops.map(function(c){ return '<option value="'+c[0]+'"'+(c[0]===r[3]?' selected':'')+'>'+escH(c[1])+'</option>'; }).join('');
+  document.getElementById('he2-box').value = r[4]||'';
+  document.getElementById('he2-w').value   = r[5]||'';
+  document.getElementById('he2-note').value= r[7]||'';
+  onHvEditCalc();
+  document.getElementById('hv-edit-modal').style.display='block';
+}
+function onHvEditCropChange(){
+  // 品目を変えたら、その品目の1箱の重さを初期値として入れる（変更もできる）
+  var ws = cropWeights(cropById(document.getElementById('he2-crop').value));
+  if(ws.length) document.getElementById('he2-w').value = ws[0];
+  onHvEditCalc();
+}
+function onHvEditCalc(){
+  var n = parseInt(toHalfWidth(document.getElementById('he2-box').value),10)||0;
+  var w = round1(toHalfWidth(document.getElementById('he2-w').value));
+  document.getElementById('he2-formula').textContent = (n&&w) ? n+'箱 × '+w+'kg' : '—';
+  document.getElementById('he2-kg').innerHTML = (n&&w) ? hvNum(n*w)+'<small>kg</small>' : '—';
+}
+function closeHarvestEdit(){ document.getElementById('hv-edit-modal').style.display='none'; _hvEditId=null; }
+
+async function saveHarvestEdit(){
+  if(!_hvEditId) return;
+  var date = document.getElementById('he2-date').value;
+  var fs2  = document.getElementById('he2-field');
+  var cs2  = document.getElementById('he2-crop');
+  var n = parseInt(toHalfWidth(document.getElementById('he2-box').value),10)||0;
+  var w = round1(toHalfWidth(document.getElementById('he2-w').value));
+  if(!date || !fs2.value){ toast('収穫日と圃場は必須です','error'); return; }
+  if(!n || !w){ toast('箱数と1箱の重さを入力してください','error'); return; }
+  showLoad();
+  try {
+    var rows = await fetchS('収穫');
+    var idx = rows.findIndex(function(x){ return x[0]===_hvEditId; });
+    if(idx<0){ toast('収穫の記録が見つかりません','error'); hideLoad(); return; }
+    var crop = cropById(cs2.value);
+    await sheetsWrite('収穫','B'+(idx+2)+':J'+(idx+2),[[date, fs2.value, cs2.value, n, w, round1(n*w),
+      document.getElementById('he2-note').value.trim(),
+      fs2.options[fs2.selectedIndex]?fs2.options[fs2.selectedIndex].text:'', crop?crop[1]:'']]);
+    closeHarvestEdit();
+    await load();
+    toast('収穫の記録を更新しました');
+  } catch(e){ toast('更新エラー: '+e.message,'error'); }
+  hideLoad();
+}
+
+async function deleteHarvest(){
+  if(!_hvEditId) return;
+  if(!confirm('この収穫の記録を削除しますか？')) return;
+  showLoad();
+  try {
+    var rows = await fetchS('収穫');
+    var idx = rows.findIndex(function(x){ return x[0]===_hvEditId; });
+    if(idx>=0) await sheetsDeleteRow('収穫', idx+2);
+    closeHarvestEdit();
+    await load();
+    toast('収穫の記録を削除しました');
+  } catch(e){ toast('削除エラー: '+e.message,'error'); }
+  hideLoad();
+}
+
+// ── 品目の登録 ───────────────────────────
+function gotoCropMaster(){
+  switchTab('master');
+  var btn = document.querySelector('.m-tab-btn[onclick*="m-c"]');
+  if(btn) switchMTab('m-c', btn);
+  var el = document.getElementById('new-c');
+  if(el){ el.scrollIntoView({block:'center'}); el.focus(); }
+}
+
+async function addCrop(){
+  var name = document.getElementById('new-c').value.trim();
+  if(!name){ toast('品目名を入力してください','error'); return; }
+  showLoad();
+  try {
+    await sheetsAppend('品目',[genId(), name, ratioEditorValue('new-c-w')]);
+    document.getElementById('new-c').value='';
+    renderRatioEditor('new-c-w', [], 'weight');
+    await load();
+    toast('品目を追加しました');
+  } catch(e){ toast('追加エラー: '+e.message,'error'); }
+  hideLoad();
+}
+
+// ============================================================
 // 測った面積を圃場マスタへ登録する
 // ============================================================
 function openFieldRegister(){
@@ -2941,102 +3454,3 @@ async function saveFieldRegister(){
 </script>
 </body>
 </html>
-
-<!--
-================================================================================
-  Google Apps Script バックエンドコード（コード.gs）
-  ※ このHTMLはGitHub Pages（直接API接続）で動作しているため通常は不要。
-  　 GAS経由に切り替えたい場合は以下を Apps Script の「コード.gs」に貼り付ける。
-================================================================================
-
-/**
- * 農業管理システム - コード.gs
- *
- * 【貼り付け先】Apps Script の「コード.gs」に全て上書き
- *
- * 【変更箇所】
- *   ★ var SECRET の値を好きなパスワードに変更して保存 ★
- *
- * 【デプロイ方法（初回のみ・変更後も同様）】
- *   デプロイ → 新しいデプロイ（または「デプロイを管理」→ 鉛筆アイコン）
- *   種類: ウェブアプリ
- *   次のユーザーとして実行: 自分
- *   アクセスできるユーザー: 全員
- *   → URLが発行される（スマホ・PCどちらでもこのURLを開くだけで使える）
- */
-
-// ★ここを好きなパスワードに変更してください★
-var SECRET = 'my-farm-2024';
-
-function doGet(e) {
-  var params = e.parameter || {};
-  if (params.action === 'read') {
-    if (params.secret !== SECRET) return makeJson({ error: 'Unauthorized' });
-    var sheetName = params.sheet;
-    if (!sheetName) return makeJson({ error: 'sheet required' });
-    try {
-      var ss = SpreadsheetApp.getActiveSpreadsheet();
-      var sh = ss.getSheetByName(sheetName);
-      if (!sh) return makeJson({ data: [] });
-      var lastRow = sh.getLastRow();
-      if (lastRow < 2) return makeJson({ data: [] });
-      var data = sh.getRange(2, 1, lastRow - 1, 26).getValues()
-        .filter(function(r) { return String(r[0]) !== ''; });
-      return makeJson({ data: data });
-    } catch (err) {
-      return makeJson({ error: err.toString() });
-    }
-  }
-  var t = HtmlService.createTemplateFromFile('Index');
-  t.gasUrl = ScriptApp.getService().getUrl();
-  t.secret = SECRET;
-  return t.evaluate()
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
-    .setTitle('農業管理システム');
-}
-
-function doPost(e) {
-  var p;
-  try { p = JSON.parse(e.postData.contents); }
-  catch (err) { return makeJson({ error: 'Invalid JSON' }); }
-  if (!p.secret || p.secret !== SECRET) return makeJson({ error: 'Unauthorized' });
-  var sheetName = p.sheet;
-  if (!sheetName) return makeJson({ error: 'sheet required' });
-  try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sh = ss.getSheetByName(sheetName);
-    if (!sh) return makeJson({ error: 'シートが見つかりません: ' + sheetName });
-    if (p.action === 'append') { sh.appendRow(p.values); return makeJson({ ok: true }); }
-    if (p.action === 'update') {
-      var rows = sh.getDataRange().getValues();
-      for (var i = 1; i < rows.length; i++) {
-        if (String(rows[i][0]) === String(p.id)) {
-          sh.getRange(i + 1, p.col, p.vals.length, p.vals[0].length).setValues(p.vals);
-          return makeJson({ ok: true });
-        }
-      }
-      return makeJson({ error: '行が見つかりません: ' + p.id });
-    }
-    if (p.action === 'delete') {
-      var rows = sh.getDataRange().getValues();
-      for (var i = 1; i < rows.length; i++) {
-        if (String(rows[i][0]) === String(p.id)) {
-          sh.deleteRow(i + 1);
-          return makeJson({ ok: true });
-        }
-      }
-      return makeJson({ error: '行が見つかりません: ' + p.id });
-    }
-    return makeJson({ error: '不明なアクション: ' + p.action });
-  } catch (err) {
-    return makeJson({ error: err.toString() });
-  }
-}
-
-function makeJson(obj) {
-  return ContentService.createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-================================================================================
--->
