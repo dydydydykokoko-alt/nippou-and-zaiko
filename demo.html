@@ -255,7 +255,7 @@ body {
 
 <nav class="tab-nav">
   <button class="tab-btn active" id="nav-diary" onclick="switchTab('diary')"><span style="font-size:20px">📋</span><span>作業日報</span></button>
-  <button class="tab-btn" id="nav-harvest" onclick="switchTab('harvest')"><span style="font-size:20px">🧺</span><span>収穫</span></button>
+  <button class="tab-btn" id="nav-harvest" onclick="switchTab('harvest')"><span style="font-size:20px">🧺</span><span>出荷</span></button>
   <button class="tab-btn" id="nav-inventory" onclick="switchTab('inventory')"><span style="font-size:20px">📦</span><span>在庫</span></button>
   <button class="tab-btn" id="nav-history" onclick="switchTab('history')"><span style="font-size:20px">📊</span><span>履歴</span></button>
   <button class="tab-btn" id="nav-add" onclick="switchTab('add')"><span style="font-size:20px">➕</span><span>入庫</span></button>
@@ -369,9 +369,9 @@ body {
 <!-- 収穫 -->
 <div id="tab-harvest" class="tab-content">
   <div class="card">
-    <div class="card-title">🧺 収穫を記録</div>
+    <div class="card-title">🧺 出荷を記録</div>
     <div class="grid-2">
-      <div class="form-group"><label class="form-label">収穫日</label><input type="date" id="hv-date" class="form-control" onchange="renderHarvest()"></div>
+      <div class="form-group"><label class="form-label">出荷日</label><input type="date" id="hv-date" class="form-control" onchange="renderHarvest()"></div>
       <div class="form-group"><label class="form-label">圃場</label><select id="hv-field" class="form-control"></select></div>
     </div>
     <div class="form-group"><label class="form-label">品目</label><select id="hv-crop" class="form-control" onchange="onHvCropChange()"></select>
@@ -401,15 +401,15 @@ body {
       </div>
     </div>
     <div class="hv-calc">
-      <div><div class="k">収穫量</div><div class="f" id="hv-formula">—</div></div>
+      <div><div class="k">出荷量</div><div class="f" id="hv-formula">—</div></div>
       <div class="v" id="hv-kg">—</div>
     </div>
     <div class="form-group"><label class="form-label">備考</label><input type="text" id="hv-note" class="form-control" placeholder="（任意）"></div>
-    <button class="btn btn-primary" style="width:100%" onclick="saveHarvest()">💾 この収穫を記録する</button>
+    <button class="btn btn-primary" style="width:100%" onclick="saveHarvest()">💾 この出荷を記録する</button>
   </div>
 
   <div class="card">
-    <div class="card-title">📋 <span id="hv-day-title">この日の収穫</span></div>
+    <div class="card-title">📋 <span id="hv-day-title">この日の出荷</span></div>
     <div id="hv-day-list"></div>
     <div class="hv-daysum">
       <span style="font-weight:700">合計</span>
@@ -424,7 +424,7 @@ body {
   </div>
 
   <div class="card">
-    <div class="card-title">📈 この1週間の収穫量<span style="font-size:11.5px;font-weight:500;color:var(--text-muted)">（kg）</span></div>
+    <div class="card-title">📈 この1週間の出荷量<span style="font-size:11.5px;font-weight:500;color:var(--text-muted)">（kg）</span></div>
     <div class="hv-chart" id="hv-chart"></div>
   </div>
 
@@ -615,7 +615,7 @@ body {
         <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">1箱の重さ（よく使う箱の分だけ登録）</div>
         <div id="new-c-w"></div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:4px">
-          複数登録すると、収穫を記録するときに選べます。
+          複数登録すると、出荷を記録するときに選べます。
         </div>
       </div>
       <button class="btn btn-primary btn-sm" style="width:100%" onclick="addCrop()">＋ 品目を追加</button>
@@ -732,9 +732,9 @@ body {
 <!-- 収穫編集モーダル -->
 <div id="hv-edit-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:5000;padding:16px;overflow-y:auto">
   <div style="background:white;border-radius:12px;padding:20px;max-width:480px;margin:60px auto;">
-    <div style="font-size:17px;font-weight:700;margin-bottom:16px;color:var(--primary-dark)">🧺 収穫を編集</div>
+    <div style="font-size:17px;font-weight:700;margin-bottom:16px;color:var(--primary-dark)">🧺 出荷を編集</div>
     <div class="grid-2">
-      <div class="form-group"><label class="form-label">収穫日</label><input type="date" id="he2-date" class="form-control"></div>
+      <div class="form-group"><label class="form-label">出荷日</label><input type="date" id="he2-date" class="form-control"></div>
       <div class="form-group"><label class="form-label">圃場</label><select id="he2-field" class="form-control"></select></div>
     </div>
     <div class="form-group"><label class="form-label">品目</label><select id="he2-crop" class="form-control" onchange="onHvEditCropChange()"></select></div>
@@ -744,7 +744,7 @@ body {
       <div class="form-group"><label class="form-label">箱数</label>
         <input type="text" id="he2-box" class="form-control" inputmode="numeric" oninput="normalizeRatioInput(this);onHvEditCalc()"></div>
     </div>
-    <div class="hv-calc"><div><div class="k">収穫量</div><div class="f" id="he2-formula">—</div></div><div class="v" id="he2-kg">—</div></div>
+    <div class="hv-calc"><div><div class="k">出荷量</div><div class="f" id="he2-formula">—</div></div><div class="v" id="he2-kg">—</div></div>
     <div class="form-group"><label class="form-label">備考</label><input type="text" id="he2-note" class="form-control"></div>
     <div style="display:flex;gap:8px;margin-top:16px">
       <button class="btn btn-primary" style="flex:1" onclick="saveHarvestEdit()">💾 保存</button>
@@ -3111,8 +3111,9 @@ function gotoSearchResult(i){
 }
 
 // ============================================================
-// 収穫・収量
-//   品目ごとに「1箱の重さ」を登録しておき、日報とは別に収穫を記録する。
+// 出荷（画面の表示は「出荷」。保存先のシート名は「収穫」のまま）
+//   品目ごとに「1箱の重さ」を登録しておき、日報とは別に出荷を記録する。
+//   シート名を変えると、すでに記録した人のデータが読めなくなるため変えていない。
 //     収穫量 = 箱数 × 1箱の重さ
 //   記録には、そのとき使った1箱の重さも一緒に残す。あとで重さの登録を
 //   変えても、過去の記録の収穫量が変わらないようにするため。
@@ -3178,7 +3179,7 @@ async function saveHarvest(){
   var fieldS = document.getElementById('hv-field');
   var cropS  = document.getElementById('hv-crop');
   var boxes  = hvBoxes(), w = hvBoxKg();
-  if(!date){ toast('収穫日を入力してください','error'); return; }
+  if(!date){ toast('出荷日を入力してください','error'); return; }
   if(!fieldS.value){ toast('圃場を選択してください','error'); return; }
   if(!cropS.value){ toast('品目を選択してください。設定→品目で登録できます','error'); return; }
   if(!boxes){ toast('箱数を入力してください','error'); return; }
@@ -3193,7 +3194,7 @@ async function saveHarvest(){
     document.getElementById('hv-note').value='';
     onHvCalc();
     await load();
-    toast('収穫 '+hvNum(boxes*w)+'kg を記録しました');
+    toast('出荷 '+hvNum(boxes*w)+'kg を記録しました');
   } catch(e){ toast('保存エラー: '+e.message,'error'); }
   hideLoad();
 }
@@ -3231,13 +3232,13 @@ function renderHarvest(){
   // その日の記録
   var rows = state.harvest.filter(function(r){ return r[1]===day; });
   var dp = day.split('-');
-  document.getElementById('hv-day-title').textContent = (parseInt(dp[1],10)||0)+'月'+(parseInt(dp[2],10)||0)+'日の収穫';
+  document.getElementById('hv-day-title').textContent = (parseInt(dp[1],10)||0)+'月'+(parseInt(dp[2],10)||0)+'日の出荷';
   document.getElementById('hv-day-list').innerHTML = rows.length ? rows.map(function(r){
     return '<div class="hv-rec" onclick="openHarvestEdit(\''+r[0]+'\')" style="cursor:pointer">'
       + '<span class="nm">'+escH(r[9]||'')+'<span class="fd">'+escH(r[8]||'')+(r[7]?'　📝 '+escH(r[7]):'')+'</span></span>'
       + '<span class="bx">'+hvNum(r[4])+'箱<br>'+hvNum(r[5])+'kg箱</span>'
       + '<span class="kg">'+hvNum(r[6])+'kg</span></div>';
-  }).join('') : '<div class="no-data">この日の収穫はまだありません</div>';
+  }).join('') : '<div class="no-data">この日の出荷はまだありません</div>';
   var dayKg = rows.reduce(function(a,r){ return a + (parseFloat(r[6])||0); }, 0);
   var dayBx = rows.reduce(function(a,r){ return a + (parseFloat(r[4])||0); }, 0);
   document.getElementById('hv-day-kg').textContent  = hvNum(dayKg);
@@ -3280,7 +3281,7 @@ function renderHarvest(){
       return '<div class="hv-brk"><span style="flex:1;min-width:0">'+escH(x.name)
         + '<div class="hv-meter"><i style="width:'+Math.round(x.kg/top*100)+'%"></i></div></span>'
         + '<span class="b">'+hvNum(x.kg)+'kg</span></div>';
-    }).join('') : '<div class="no-data">今月の収穫はまだありません</div>';
+    }).join('') : '<div class="no-data">今月の出荷はまだありません</div>';
   }
   breakdown('hv-by-crop', 3, 9);
   breakdown('hv-by-field', 2, 8);
@@ -3324,27 +3325,27 @@ async function saveHarvestEdit(){
   var cs2  = document.getElementById('he2-crop');
   var n = parseInt(toHalfWidth(document.getElementById('he2-box').value),10)||0;
   var w = round1(toHalfWidth(document.getElementById('he2-w').value));
-  if(!date || !fs2.value){ toast('収穫日と圃場は必須です','error'); return; }
+  if(!date || !fs2.value){ toast('出荷日と圃場は必須です','error'); return; }
   if(!n || !w){ toast('箱数と1箱の重さを入力してください','error'); return; }
   showLoad();
   try {
     var rows = await fetchS('収穫');
     var idx = rows.findIndex(function(x){ return x[0]===_hvEditId; });
-    if(idx<0){ toast('収穫の記録が見つかりません','error'); hideLoad(); return; }
+    if(idx<0){ toast('出荷の記録が見つかりません','error'); hideLoad(); return; }
     var crop = cropById(cs2.value);
     await sheetsWrite('収穫','B'+(idx+2)+':J'+(idx+2),[[date, fs2.value, cs2.value, n, w, round1(n*w),
       document.getElementById('he2-note').value.trim(),
       fs2.options[fs2.selectedIndex]?fs2.options[fs2.selectedIndex].text:'', crop?crop[1]:'']]);
     closeHarvestEdit();
     await load();
-    toast('収穫の記録を更新しました');
+    toast('出荷の記録を更新しました');
   } catch(e){ toast('更新エラー: '+e.message,'error'); }
   hideLoad();
 }
 
 async function deleteHarvest(){
   if(!_hvEditId) return;
-  if(!confirm('この収穫の記録を削除しますか？')) return;
+  if(!confirm('この出荷の記録を削除しますか？')) return;
   showLoad();
   try {
     var rows = await fetchS('収穫');
@@ -3352,7 +3353,7 @@ async function deleteHarvest(){
     if(idx>=0) await sheetsDeleteRow('収穫', idx+2);
     closeHarvestEdit();
     await load();
-    toast('収穫の記録を削除しました');
+    toast('出荷の記録を削除しました');
   } catch(e){ toast('削除エラー: '+e.message,'error'); }
   hideLoad();
 }
