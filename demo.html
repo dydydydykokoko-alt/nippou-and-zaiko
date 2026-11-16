@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<title>農業管理システム 体験版</title>
+<title>作業管理アプリ 体験版</title>
 
 <style>
 :root {
@@ -52,6 +52,22 @@ body {
   border-top: 3px solid transparent; white-space: nowrap; letter-spacing: -0.3px;
 }
 .tab-btn.active { color: var(--primary); border-top-color: var(--primary); font-weight: 700; background: #f0faf3; }
+/* ── プランに無い機能（🔒） ── */
+.tab-btn { position: relative; }
+.tab-btn .tab-lock { display: none; position: absolute; top: 4px; right: 50%; margin-right: -20px; font-size: 10px; }
+.tab-btn.locked > span:first-child { opacity: .45; }
+.tab-btn.locked .tab-lock { display: block; }
+.m-tab-btn.locked { color: var(--text-muted); }
+.lock-card { text-align: center; padding: 28px 18px; }
+.lock-card .ico { font-size: 40px; line-height: 1; margin-bottom: 10px; }
+.lock-card h3 { font-size: 17px; margin-bottom: 6px; color: var(--primary-dark); }
+.lock-card .note { font-size: 13px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.7; }
+.lock-card .plans { font-size: 14px; line-height: 1.8; background: var(--secondary); border-radius: 8px; padding: 12px; }
+.plan-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+.plan-table th, .plan-table td { border-bottom: 1px solid var(--border); padding: 6px 4px; text-align: center; }
+.plan-table th:first-child, .plan-table td:first-child { text-align: left; }
+.plan-table .now { background: #f0faf3; font-weight: 700; }
+.plan-table td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .tab-content { display: none; padding: 12px; max-width: 900px; margin: 0 auto; }
 .tab-content.active { display: block; }
 .card { background: var(--white); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); margin-bottom: 14px; }
@@ -250,16 +266,16 @@ body {
 
 <header class="app-header">
   <span style="font-size:24px">🌾</span>
-  <h1>農業管理システム（体験版）</h1>
+  <h1>作業管理アプリ（体験版）</h1>
 </header>
 
 <nav class="tab-nav">
   <button class="tab-btn active" id="nav-diary" onclick="switchTab('diary')"><span style="font-size:20px">📋</span><span>作業日報</span></button>
-  <button class="tab-btn" id="nav-harvest" onclick="switchTab('harvest')"><span style="font-size:20px">🧺</span><span>出荷</span></button>
-  <button class="tab-btn" id="nav-inventory" onclick="switchTab('inventory')"><span style="font-size:20px">📦</span><span>在庫</span></button>
-  <button class="tab-btn" id="nav-history" onclick="switchTab('history')"><span style="font-size:20px">📊</span><span>履歴</span></button>
-  <button class="tab-btn" id="nav-add" onclick="switchTab('add')"><span style="font-size:20px">➕</span><span>入庫</span></button>
-  <button class="tab-btn" id="nav-area" onclick="switchTab('area')"><span style="font-size:20px">📐</span><span>面積</span></button>
+  <button class="tab-btn" id="nav-harvest" onclick="switchTab('harvest')"><span style="font-size:20px">🧺</span><span>出荷</span><span class="tab-lock" aria-label="プランに含まれていません">🔒</span></button>
+  <button class="tab-btn" id="nav-inventory" onclick="switchTab('inventory')"><span style="font-size:20px">📦</span><span>在庫</span><span class="tab-lock" aria-label="プランに含まれていません">🔒</span></button>
+  <button class="tab-btn" id="nav-history" onclick="switchTab('history')"><span style="font-size:20px">📊</span><span>履歴</span><span class="tab-lock" aria-label="プランに含まれていません">🔒</span></button>
+  <button class="tab-btn" id="nav-add" onclick="switchTab('add')"><span style="font-size:20px">➕</span><span>入庫</span><span class="tab-lock" aria-label="プランに含まれていません">🔒</span></button>
+  <button class="tab-btn" id="nav-area" onclick="switchTab('area')"><span style="font-size:20px">📐</span><span>面積</span><span class="tab-lock" aria-label="プランに含まれていません">🔒</span></button>
   <button class="tab-btn" id="nav-master" onclick="switchTab('master')"><span style="font-size:20px">⚙️</span><span>設定</span></button>
 </nav>
 
@@ -464,6 +480,11 @@ body {
 </div>
 
 <!-- 面積測定 -->
+<!-- プランに無い機能を開いたとき -->
+<div id="tab-locked" class="tab-content">
+  <div class="card lock-card" id="locked-body"></div>
+</div>
+
 <div id="tab-area" class="tab-content">
   <div class="card">
     <div class="card-title">📐 面積を調べる</div>
@@ -515,10 +536,23 @@ body {
     <div id="auth-status" style="display:none"></div>
     <div id="sync-status" style="font-size:12px;color:var(--text-muted);text-align:center;padding:2px"></div>
   </div>
+  <div class="card">
+    <div class="card-title">📝 ご契約のプラン</div>
+    <div id="plan-status"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">📥 記録の書き出し</div>
+    <div style="font-size:13px;line-height:1.8;margin-bottom:10px">
+      これまでの記録を、表計算ソフトで開ける表（CSV）と写真にまとめて、1つのファイル（ZIP）で保存します。
+      控えを残したいときや、ほかのソフトに移したいときにお使いください。
+    </div>
+    <button class="btn btn-secondary" style="width:100%" id="export-btn" onclick="exportRecords()">📥 記録を書き出す</button>
+    <div id="export-status" style="font-size:12px;color:var(--text-muted);margin-top:8px;line-height:1.7"></div>
+  </div>
   <div class="master-tabs">
     <button class="m-tab-btn active" onclick="switchMTab('m-f',this)">圃場</button>
     <button class="m-tab-btn" onclick="switchMTab('m-w',this)">作業</button>
-    <button class="m-tab-btn" onclick="switchMTab('m-c',this)">品目</button>
+    <button class="m-tab-btn" id="mtab-c" onclick="switchMTab('m-c',this)">品目</button>
     <button class="m-tab-btn" onclick="switchMTab('m-m',this)">資材</button>
     <button class="m-tab-btn" onclick="switchMTab('m-map',this)">紐付</button>
   </div>
@@ -591,7 +625,7 @@ body {
           液剤・水和剤・液肥など、水で薄めて使う資材が対象です（薄めない資材は空欄）。
         </div>
       </div>
-      <div style="margin-bottom:10px">
+      <div style="margin-bottom:10px" id="new-m-min-wrap">
         <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">最低在庫（これを下回ると在庫画面に「⚠ 不足」と出ます。不要なら空欄）</div>
         <div style="display:flex;gap:6px;align-items:center">
           <input type="text" id="new-m-min" class="form-control" inputmode="decimal" placeholder="例：20" oninput="normalizeRatioInput(this)" style="flex:1">
@@ -606,6 +640,7 @@ body {
       <div id="list-m" style="margin-top:10px"></div>
     </div>
   </div>
+  <div id="m-locked" class="m-tab-content" style="display:none"><div class="card lock-card" id="m-locked-body"></div></div>
   <div id="m-c" class="m-tab-content" style="display:none">
     <div class="card">
       <div style="margin-bottom:8px">
@@ -801,6 +836,24 @@ body {
 // ============================================================
 var cfg = { fb:null };
 var state = { fields:[], wts:[], mats:[], mapping:[], inv:[], diary:[], history:[], crops:[], harvest:[] };
+
+// ============================================================
+// プラン
+//   どのプランで何が使えるかは src/plans.json の1か所で決め、build.py がここに入れる。
+//   画面の出し分けとデータ層の停止はここで行うが、実際に守っているのは
+//   セキュリティルール（firestore.rules。同じ表から作られる）。
+// ============================================================
+var PLANS = {"features": {"diary": {"name": "作業日報", "note": "圃場・作業・資材の登録、日報、天気、写真"}, "inventory": {"name": "在庫・入庫・履歴", "note": "日報で使った資材の自動差し引き、仕入れの登録、入出庫の記録"}, "shipping": {"name": "出荷", "note": "品目と1箱の重さ、出荷量の記録と集計"}, "area": {"name": "面積（地図）", "note": "航空写真の上で農地を選んで面積を測る"}}, "plans": {"lite": {"name": "ライト", "price": 400, "members": 1, "features": ["diary"]}, "standard": {"name": "スタンダード", "price": 700, "members": 2, "features": ["diary", "inventory"]}, "full": {"name": "フル", "price": 1000, "members": 5, "features": ["diary", "inventory", "shipping", "area"]}, "free": {"name": "フリー", "price": 0, "members": 5, "features": ["diary", "inventory", "shipping", "area"], "buyout": true}}, "default": "full", "sheets": {"在庫": "inventory", "入出庫": "inventory", "品目": "shipping", "収穫": "shipping"}};
+var FARM_PLAN = PLANS.default, FARM_EXTRAS = [];   // 本番版はログイン後に農場の契約内容で上書きする
+
+function planInfo(){ return PLANS.plans[FARM_PLAN] || PLANS.plans[PLANS.default]; }
+function hasFeature(f){ return planInfo().features.indexOf(f) >= 0 || FARM_EXTRAS.indexOf(f) >= 0; }
+function sheetAvailable(sheet){ return hasFeature(PLANS.sheets[sheet] || 'diary'); }
+// その機能が入っているプラン名の一覧（鍵の案内に使う）
+function plansWith(f){
+  return Object.keys(PLANS.plans).filter(function(k){ return !PLANS.plans[k].buyout && PLANS.plans[k].features.indexOf(f) >= 0; })
+    .map(function(k){ return PLANS.plans[k].name; });
+}
 var images = [];
 
 // 製品版と共通のコードから参照されるため、形だけ用意しておく
@@ -825,22 +878,78 @@ function toast(msg, type){
   setTimeout(function(){ if(_toastEl){ _toastEl.remove(); _toastEl=null; } }, 3500);
 }
 
+// タブ・設定の小タブが、どの機能に属するか（ここに無いものは全プラン共通）
+var TAB_FEATURE  = { harvest:'shipping', inventory:'inventory', history:'inventory', add:'inventory', area:'area' };
+var MTAB_FEATURE = { 'm-c':'shipping' };
+
 function switchTab(id){
+  var need = TAB_FEATURE[id], locked = !!need && !hasFeature(need);
   document.querySelectorAll('.tab-content').forEach(function(c){ c.classList.remove('active'); });
   document.querySelectorAll('.tab-nav .tab-btn').forEach(function(b){ b.classList.remove('active'); });
-  document.getElementById('tab-'+id).classList.add('active');
+  if(locked) document.getElementById('locked-body').innerHTML = lockCardHtml(need);
+  document.getElementById(locked ? 'tab-locked' : 'tab-'+id).classList.add('active');
   document.getElementById('nav-'+id).classList.add('active');
   window.scrollTo(0,0);
+  if(locked) return;
   // 地図は開かれた時に初めて準備する（起動を軽くするため）
   if(id === 'area') initMap();
   if(id === 'harvest') renderHarvest();
 }
 
 function switchMTab(id, el){
+  var need = MTAB_FEATURE[id], locked = !!need && !hasFeature(need);
   document.querySelectorAll('.m-tab-content').forEach(function(c){ c.style.display='none'; });
   document.querySelectorAll('.m-tab-btn').forEach(function(b){ b.classList.remove('active'); });
-  document.getElementById(id).style.display='block';
+  if(locked) document.getElementById('m-locked-body').innerHTML = lockCardHtml(need);
+  document.getElementById(locked ? 'm-locked' : id).style.display='block';
   el.classList.add('active');
+}
+
+// プランに無い機能を開いたときの案内
+function lockCardHtml(f){
+  var fi = PLANS.features[f] || { name:f, note:'' };
+  return '<div class="ico">🔒</div>'
+    + '<h3>「'+escH(fi.name)+'」はご契約のプランに含まれていません</h3>'
+    + '<div class="note">'+escH(fi.note)+'</div>'
+    + '<div class="plans">「'+plansWith(f).map(escH).join('」「')+'」プランで使えます。<br>'
+    +   'ご契約中のプラン：<b>'+escH(planInfo().name)+'</b></div>'
+    + '<div class="note" style="margin:12px 0 0">プランの変更は運営者へご連絡ください。<br>'
+    +   'プランを下げた場合も、それまでの記録は消えずに残っています。</div>';
+}
+
+// 契約内容に合わせて、鍵の印・入力欄・設定のプラン表示を切り替える
+function applyPlan(){
+  Object.keys(TAB_FEATURE).forEach(function(t){
+    var b = document.getElementById('nav-'+t);
+    if(b) b.classList.toggle('locked', !hasFeature(TAB_FEATURE[t]));
+  });
+  var mc = document.getElementById('mtab-c');
+  if(mc){ var ok = hasFeature('shipping'); mc.classList.toggle('locked', !ok); mc.textContent = ok ? '品目' : '🔒 品目'; }
+  var mw = document.getElementById('new-m-min-wrap');
+  if(mw) mw.style.display = hasFeature('inventory') ? '' : 'none';
+  renderPlanStatus();
+}
+
+function renderPlanStatus(){
+  var el = document.getElementById('plan-status');
+  if(!el) return;
+  // 買い取り用のプランは料金表に出さない（月額のプランだけを並べる）
+  var keys = Object.keys(PLANS.plans).filter(function(k){ return !PLANS.plans[k].buyout; }), fkeys = Object.keys(PLANS.features);
+  var yen = function(n){ return (n==null) ? '' : '月'+Number(n).toLocaleString('ja-JP')+'円'; };
+  var head = '';
+  head = '<div style="font-size:13px;line-height:1.8">体験版では<b>すべての機能</b>をお試しいただけます。製品版のプランは次のとおりです。</div>';
+  var cur = function(k){ return (k===FARM_PLAN) ? ' class="now"' : ''; };
+  var rows = fkeys.map(function(f){
+    return '<tr><td>'+escH(PLANS.features[f].name)+'</td>'+keys.map(function(k){
+      return '<td'+cur(k)+'>'+(PLANS.plans[k].features.indexOf(f)>=0 ? '○' : '—')+'</td>';
+    }).join('')+'</tr>';
+  }).join('');
+  el.innerHTML = head + '<div style="overflow-x:auto"><table class="plan-table">'
+    + '<thead><tr><th></th>'+keys.map(function(k){ return '<th'+cur(k)+'>'+escH(PLANS.plans[k].name)+'</th>'; }).join('')+'</tr></thead>'
+    + '<tbody>'+rows
+    + '<tr><td>使える人数</td>'+keys.map(function(k){ return '<td'+cur(k)+'>'+PLANS.plans[k].members+'人</td>'; }).join('')+'</tr>'
+    + '<tr><td>料金</td>'+keys.map(function(k){ return '<td class="num'+(k===FARM_PLAN?' now':'')+'">'+yen(PLANS.plans[k].price)+'</td>'; }).join('')+'</tr>'
+    + '</tbody></table></div>';
 }
 
 // 体験版はログイン不要。製品版と共通のコードから呼ばれるため関数だけ残す。
@@ -859,10 +968,11 @@ function updateNetBadge(){}
 // ============================================================
 window.onload = function(){
   initSampleData();
-  document.getElementById('d-date').value  = new Date().toISOString().split('T')[0];
-  document.getElementById('a-date').value  = new Date().toISOString().split('T')[0];
-  document.getElementById('hv-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('d-date').value  = ymd(new Date());
+  document.getElementById('a-date').value  = ymd(new Date());
+  document.getElementById('hv-date').value = ymd(new Date());
   renderRatioEditor('new-c-w', [], 'weight');   // 品目の「1箱の重さ」の入力欄
+  applyPlan();
 
   // 時間ドロップダウンの選択肢を生成（04:00〜21:45、15分刻み）
   var timeOpts = '<option value="">--</option>';
@@ -932,7 +1042,7 @@ function initSampleData(){
   var today = new Date();
   function daysAgo(n){
     var d = new Date(today.getTime() - n*86400000);
-    return d.toISOString().split('T')[0];
+    return ymd(d);
   }
 
   // [ID,日付,圃場ID,作業ID,使用資材,開始,分,備考,圃場名,作業名]
@@ -1041,6 +1151,7 @@ function _demoWrite(sheet, rows){
 }
 
 async function fetchS(n){
+  if(!sheetAvailable(n)) return [];   // プランに無い機能のシートは読まない
   return _demoRead(n);
 }
 
@@ -1054,6 +1165,7 @@ function _parseA1(a1){
 }
 
 async function sheetsAppend(sheet, values){
+  if(!sheetAvailable(sheet)) return { id: null };   // プランに無い機能のシートには書かない
   var rows = _demoRead(sheet);
   rows.push((values||[]).map(function(v){ return (v===undefined||v===null)?'':v; }));
   _demoWrite(sheet, rows);
@@ -1061,6 +1173,7 @@ async function sheetsAppend(sheet, values){
 }
 
 async function sheetsWrite(sheet, a1, values){
+  if(!sheetAvailable(sheet)) return;
   var pos  = _parseA1(a1);
   var rows = _demoRead(sheet);
   var idx  = pos.row - 2;                       // 2行目 = 配列の0番目
@@ -1076,6 +1189,7 @@ async function sheetsWrite(sheet, a1, values){
 }
 
 async function sheetsDeleteRow(sheet, rowIndex){
+  if(!sheetAvailable(sheet)) return;
   var rows = _demoRead(sheet);
   var idx  = rowIndex - 2;
   if(idx < 0 || idx >= rows.length) throw new Error('削除対象が見つかりません: '+sheet+' 行'+rowIndex);
@@ -1086,6 +1200,7 @@ async function sheetsDeleteRow(sheet, rowIndex){
 
 // 指定したセルの数値を増減する（在庫数に使う）
 async function sheetsIncrement(sheet, a1, delta, current){
+  if(!sheetAvailable(sheet)) return;
   var pos = _parseA1(a1);
   var rows = _demoRead(sheet), idx = pos.row - 2;
   if(idx < 0 || idx >= rows.length) throw new Error('更新対象が見つかりません: '+sheet+' '+a1);
@@ -1255,6 +1370,11 @@ function render(){
 }
 
 function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+// 端末の時計（日本時間）での「年-月-日」。
+// toISOString() は世界標準時なので、日本では朝9時より前だと前日の日付になってしまう。
+function ymd(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
 function genId(){ return Date.now().toString(36)+Math.random().toString(36).substr(2); }
 
 // 在庫を「X袋 + Ykg」形式で表示
@@ -1752,8 +1872,9 @@ function onWTC(el){
 // ============================================================
 // 写真 共通ヘルパー
 // ============================================================
-function compressImage(dataUrl, cb){
+function compressImage(dataUrl, cb, onError){
   var img = new Image();
+  img.onerror = function(){ if(onError) onError(); };
   img.onload = function(){
     var MAX = 600;
     var w = img.width, h = img.height;
@@ -1836,13 +1957,53 @@ function _setPendingIds(a){
 function _queuePhotoUpload(id){}
 async function flushPendingPhotos(){}
 
+// ------------------------------------------------------------
+// 選んだ写真を読み込む（縮小してから使う）
+//   iPhoneの写真（HEIC）はパソコンのChromeなどでは表示できないため、
+//   そのときだけ変換用の部品を読み込んでJPEGに直す（通信が必要）。
+//   読めなかったときは、黙って無視せず理由を伝える。
+// ------------------------------------------------------------
+var HEIC2ANY_URL = 'https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';
+var HEIC2ANY_SRI = 'sha384-OTofQ0MEeiSgh62havBcemCIK0gqj809wX6UA0uPISNMRnR6NZyCdGzX3SbLrgwL';
+var _heicLoader = null;
+function loadHeic2any(){
+  if(window.heic2any) return Promise.resolve(window.heic2any);
+  if(!_heicLoader) _heicLoader = new Promise(function(resolve, reject){
+    var sc = document.createElement('script');
+    sc.src = HEIC2ANY_URL; sc.integrity = HEIC2ANY_SRI; sc.crossOrigin = 'anonymous';
+    sc.onload  = function(){ window.heic2any ? resolve(window.heic2any) : reject(new Error('heic2any')); };
+    sc.onerror = function(){ _heicLoader = null; reject(new Error('load')); };
+    document.head.appendChild(sc);
+  });
+  return _heicLoader;
+}
+function isHeic(f){ return /hei[cf]/i.test(f.type||'') || /\.hei[cf]$/i.test(f.name||''); }
+
+function readPhoto(f, cb){
+  var url = URL.createObjectURL(f);
+  compressImage(url, function(d){ URL.revokeObjectURL(url); cb(d); }, async function(){
+    URL.revokeObjectURL(url);
+    if(!isHeic(f)){ toast('この写真は読み込めませんでした（'+(f.name||'')+'）。JPEGやPNGの写真を選んでください','error'); return; }
+    if(!navigator.onLine){ toast('iPhoneの写真（HEIC）の変換には通信が必要です。電波のある場所で選び直してください','error'); return; }
+    try {
+      toast('iPhoneの写真（HEIC）を変換しています…');
+      var conv = await loadHeic2any();
+      var out  = await conv({ blob:f, toType:'image/jpeg', quality:0.8 });
+      var u2   = URL.createObjectURL(Array.isArray(out) ? out[0] : out);
+      compressImage(u2, function(d){ URL.revokeObjectURL(u2); cb(d); },
+        function(){ URL.revokeObjectURL(u2); toast('この写真は読み込めませんでした','error'); });
+    } catch(e){
+      toast('iPhoneの写真（HEIC）を変換できませんでした。スマホから選ぶか、JPEGで保存し直してください','error');
+    }
+  });
+}
+
 // 新規日報の写真
 function onFile(inp){
   Array.from(inp.files||[]).slice(0, 5-images.length).forEach(function(f){
-    var r=new FileReader();
-    r.onload=function(e){ compressImage(e.target.result, function(d){ images.push(d); renderI(); }); };
-    r.readAsDataURL(f);
+    readPhoto(f, function(d){ if(images.length < 5){ images.push(d); renderI(); } });
   });
+  inp.value = '';   // 同じ写真をもう一度選んでも反応するように
 }
 function renderI(){
   document.getElementById('img-pre').innerHTML = images.map(function(img,i){
@@ -1855,10 +2016,9 @@ function renderI(){
 var editImages = [];
 function onDEFile(inp){
   Array.from(inp.files||[]).slice(0, 5-editImages.length).forEach(function(f){
-    var r=new FileReader();
-    r.onload=function(e){ compressImage(e.target.result, function(d){ editImages.push(d); renderDEI(); }); };
-    r.readAsDataURL(f);
+    readPhoto(f, function(d){ if(editImages.length < 5){ editImages.push(d); renderDEI(); } });
   });
+  inp.value = '';
 }
 function renderDEI(){
   document.getElementById('de-img-pre').innerHTML = editImages.map(function(img,i){
@@ -1887,7 +2047,7 @@ function calcDur(){
 function resetDiary(){
   images=[]; renderI();
   document.getElementById('d-notes').value='';
-  document.getElementById('d-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('d-date').value=ymd(new Date());
   document.querySelectorAll('#d-wt-list input').forEach(function(cb){
     cb.checked=false;
     var l=document.getElementById('wt-l-'+cb.value); if(l) l.classList.remove('checked');
@@ -2094,7 +2254,7 @@ function openEdit(sheetName,id){
     if(isDilutableUnit(item[2]||'')) fieldDefs.push({label:'希釈倍率（不要なら空欄）',val:item[5]||'',type:'ratios'});
     // 最低在庫は資材マスタではなく在庫シートの3列目に持っている
     var invRow = state.inv.find(function(r){ return r[0]===id; });
-    fieldDefs.push({label:'最低在庫'+(item[2]?'（'+item[2]+'）':'')+'　下回ると「⚠ 不足」', val: invRow ? (invRow[2]||'') : '', type:'decimal', store:'minStock'});
+    if(hasFeature('inventory')) fieldDefs.push({label:'最低在庫'+(item[2]?'（'+item[2]+'）':'')+'　下回ると「⚠ 不足」', val: invRow ? (invRow[2]||'') : '', type:'decimal', store:'minStock'});
   } else if(sheetName==='品目'){
     item=state.crops.find(function(c){ return c[0]===id; }); if(!item) return;
     // 重さを変えても、すでに記録した収穫量は変わらない（記録にその時の重さを残しているため）
@@ -3203,7 +3363,7 @@ async function saveHarvest(){
 function renderHarvest(){
   var dateEl = document.getElementById('hv-date');
   if(!dateEl) return;
-  if(!dateEl.value) dateEl.value = new Date().toISOString().split('T')[0];
+  if(!dateEl.value) dateEl.value = ymd(new Date());
 
   // 圃場・品目の選択肢（選択中の値は保つ）
   var f = document.getElementById('hv-field'), pf = f.value;
@@ -3225,7 +3385,7 @@ function renderHarvest(){
     w.value = keepW; onHvWeightChange();
   }
 
-  var today = new Date().toISOString().split('T')[0];
+  var today = ymd(new Date());
   var day   = dateEl.value || today;
   var month = day.slice(0,7);
 
@@ -3254,7 +3414,7 @@ function renderHarvest(){
   var days = [];
   for(var i=6;i>=0;i--){
     var d = new Date(); d.setDate(d.getDate()-i);
-    var key = d.toISOString().split('T')[0];
+    var key = ymd(d);
     days.push({ key:key, label:String(d.getDate()),
                 kg: sum(state.harvest.filter(function(r){ return r[1]===key; })) });
   }
@@ -3379,6 +3539,191 @@ async function addCrop(){
     toast('品目を追加しました');
   } catch(e){ toast('追加エラー: '+e.message,'error'); }
   hideLoad();
+}
+
+// ============================================================
+// 記録の書き出し
+//   自分の農場の記録を、表計算ソフトで開けるCSVと写真（JPEG）にまとめ、
+//   1つのZIPファイルとして保存する。解約時のデータの受け渡しにも使う。
+//   外部の部品は使わない（圏外でも、端末にある分は書き出せる）。
+// ============================================================
+
+// 書き出す表の定義。シートごとに、見出しと値の取り出し方を決める。
+function _exLookup(list, id, col){ var x = list.find(function(r){ return r[0]===id; }); return x ? (x[col]||'') : ''; }
+function _exMatsText(raw){
+  return String(raw||'').split(',').filter(Boolean).map(function(p){
+    var i = p.indexOf(':'); if(i < 0) return '';
+    var id = p.substring(0,i), q = p.substring(i+1);
+    var m = state.mats.find(function(x){ return x[0]===id; });
+    return (m ? m[1] : '（削除された資材）') + ' ' + q + (m && m[2] ? m[2] : '');
+  }).filter(Boolean).join('、');
+}
+function _exLitersText(r){
+  var ids = String(r[3]||'').split(',').filter(Boolean);
+  var map = parseLiters(r[11], ids);
+  return Object.keys(map).map(function(w){ return (_exLookup(state.wts, w, 1) || '作業') + ' ' + map[w] + 'L'; }).join('、');
+}
+function _exByDate(rows){ return rows.slice().sort(function(a,b){ return String(a[1]).localeCompare(String(b[1])); }); }
+
+var EXPORT_TABLES = [
+  { sheet:'圃場', key:'fields', file:'圃場', cols:[
+      ['圃場名',function(r){return r[1];}], ['面積',function(r){return r[2];}], ['単位',function(r){return r[3];}], ['ID',function(r){return r[0];}] ]},
+  { sheet:'作業内容', key:'wts', file:'作業内容', cols:[
+      ['作業名',function(r){return r[1];}], ['ID',function(r){return r[0];}] ]},
+  { sheet:'資材マスタ', key:'mats', file:'資材', cols:[
+      ['資材名',function(r){return r[1];}], ['計量単位',function(r){return r[2];}], ['1セットの量',function(r){return r[3];}],
+      ['セット単位',function(r){return r[4];}], ['希釈倍率',function(r){return r[5];}], ['ID',function(r){return r[0];}] ]},
+  { sheet:'作業内容_資材', key:'mapping', file:'作業と資材の紐付け', cols:[
+      ['作業名',function(r){return _exLookup(state.wts,r[0],1);}], ['資材名',function(r){return _exLookup(state.mats,r[1],1);}],
+      ['作業ID',function(r){return r[0];}], ['資材ID',function(r){return r[1];}] ]},
+  { sheet:'在庫', key:'inv', file:'在庫', cols:[
+      ['資材名',function(r){return _exLookup(state.mats,r[0],1);}], ['在庫数',function(r){return r[1];}],
+      ['単位',function(r){return _exLookup(state.mats,r[0],2);}], ['最低在庫',function(r){return r[2];}], ['資材ID',function(r){return r[0];}] ]},
+  { sheet:'作業日報', key:'diary', file:'作業日報', sort:_exByDate, cols:[
+      ['日付',function(r){return r[1];}], ['圃場',function(r){return r[8];}], ['作業',function(r){return r[9];}],
+      ['天気',function(r){return r[12];}], ['開始',function(r){return r[5];}], ['作業時間（分）',function(r){return r[6];}],
+      ['使用資材',function(r){return _exMatsText(r[4]);}], ['希釈量',function(r){return _exLitersText(r);}],
+      ['備考',function(r){return r[7];}], ['写真',function(r){return (_exPhotoNames[r[0]]||[]).join(' ');}], ['ID',function(r){return r[0];}] ]},
+  { sheet:'入出庫', key:'history', file:'入出庫', sort:_exByDate, cols:[
+      ['日付',function(r){return r[1];}], ['種別',function(r){return r[3];}], ['資材名',function(r){return r[8] || _exLookup(state.mats,r[2],1);}],
+      ['数量',function(r){return r[4];}], ['単位',function(r){return _exLookup(state.mats,r[2],2);}],
+      ['単価',function(r){return r[5];}], ['金額',function(r){return r[6];}], ['備考',function(r){return r[7];}], ['ID',function(r){return r[0];}] ]},
+  { sheet:'品目', key:'crops', file:'品目', cols:[
+      ['品目名',function(r){return r[1];}], ['1箱の重さ（kg）',function(r){return r[2];}], ['ID',function(r){return r[0];}] ]},
+  { sheet:'収穫', key:'harvest', file:'出荷', sort:_exByDate, cols:[
+      ['日付',function(r){return r[1];}], ['圃場',function(r){return r[8];}], ['品目',function(r){return r[9];}],
+      ['箱数',function(r){return r[4];}], ['1箱の重さ（kg）',function(r){return r[5];}], ['出荷量（kg）',function(r){return r[6];}],
+      ['備考',function(r){return r[7];}], ['ID',function(r){return r[0];}] ]}
+];
+var _exPhotoNames = {};   // 日報ID → ZIPの中の写真ファイル名（作業日報の表に載せる）
+
+// Excelで文字化けしないよう、先頭にBOMを付けたUTF-8・改行はCRLF
+function _exCsv(def, rows){
+  var q = function(v){
+    var s = (v===undefined || v===null) ? '' : String(v);
+    return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+  };
+  var lines = [def.cols.map(function(c){ return q(c[0]); }).join(',')];
+  (def.sort ? def.sort(rows) : rows).forEach(function(r){
+    lines.push(def.cols.map(function(c){ return q(c[1](r)); }).join(','));
+  });
+  return '﻿' + lines.join('\r\n') + '\r\n';
+}
+function _exSafe(s){ return String(s||'').replace(/[\\\/:*?"<>|\s]+/g,'_').replace(/^_+|_+$/g,'') || '記録'; }
+
+// ── ZIP（圧縮なしの「格納」形式。写真はすでに圧縮済みなので十分） ──
+var _crcTable = null;
+function _crc32(u8){
+  if(!_crcTable){
+    _crcTable = new Uint32Array(256);
+    for(var n=0;n<256;n++){ var c=n; for(var k=0;k<8;k++) c = (c&1) ? (0xEDB88320 ^ (c>>>1)) : (c>>>1); _crcTable[n]=c>>>0; }
+  }
+  var crc = 0xFFFFFFFF;
+  for(var i=0;i<u8.length;i++) crc = _crcTable[(crc ^ u8[i]) & 0xFF] ^ (crc >>> 8);
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+function _makeZip(files){
+  var enc = new TextEncoder(), now = new Date();
+  var dtime = (now.getHours()<<11) | (now.getMinutes()<<5) | (now.getSeconds()>>1);
+  var ddate = ((now.getFullYear()-1980)<<9) | ((now.getMonth()+1)<<5) | now.getDate();
+  var parts = [], central = [], offset = 0;
+  files.forEach(function(f){
+    var name = enc.encode(f.name), data = f.data, crc = _crc32(data);
+    var h = new DataView(new ArrayBuffer(30));
+    h.setUint32(0,0x04034b50,true); h.setUint16(4,20,true); h.setUint16(6,0x0800,true);   // 0x0800 = ファイル名はUTF-8
+    h.setUint16(8,0,true); h.setUint16(10,dtime,true); h.setUint16(12,ddate,true);
+    h.setUint32(14,crc,true); h.setUint32(18,data.length,true); h.setUint32(22,data.length,true);
+    h.setUint16(26,name.length,true); h.setUint16(28,0,true);
+    parts.push(new Uint8Array(h.buffer), name, data);
+    var c = new DataView(new ArrayBuffer(46));
+    c.setUint32(0,0x02014b50,true); c.setUint16(4,20,true); c.setUint16(6,20,true); c.setUint16(8,0x0800,true);
+    c.setUint16(10,0,true); c.setUint16(12,dtime,true); c.setUint16(14,ddate,true);
+    c.setUint32(16,crc,true); c.setUint32(20,data.length,true); c.setUint32(24,data.length,true);
+    c.setUint16(28,name.length,true); c.setUint16(30,0,true); c.setUint16(32,0,true); c.setUint16(34,0,true);
+    c.setUint16(36,0,true); c.setUint32(38,0,true); c.setUint32(42,offset,true);
+    central.push(new Uint8Array(c.buffer), name);
+    offset += 30 + name.length + data.length;
+  });
+  var cdSize = central.reduce(function(a,p){ return a + p.length; }, 0);
+  var e = new DataView(new ArrayBuffer(22));
+  e.setUint32(0,0x06054b50,true); e.setUint16(4,0,true); e.setUint16(6,0,true);
+  e.setUint16(8,files.length,true); e.setUint16(10,files.length,true);
+  e.setUint32(12,cdSize,true); e.setUint32(16,offset,true); e.setUint16(20,0,true);
+  return new Blob(parts.concat(central, [new Uint8Array(e.buffer)]), { type:'application/zip' });
+}
+function _dataUrlBytes(d){
+  var b = atob(String(d).split(',')[1]||''), u = new Uint8Array(b.length);
+  for(var i=0;i<b.length;i++) u[i] = b.charCodeAt(i);
+  return u;
+}
+
+async function exportRecords(){
+  var btn = document.getElementById('export-btn'), st = document.getElementById('export-status');
+  if(btn.disabled) return;
+  btn.disabled = true;
+  var say = function(t){ st.textContent = t; };
+  try {
+    var day  = ymd(new Date());
+    var base = '作業管理アプリ_体験版_' + day;
+    var enc = new TextEncoder(), files = [], counts = [];
+
+    // 写真：サーバーにあるものを取り込み、無ければこの端末に残っている分を使う
+    _exPhotoNames = {};
+    var photos = [], ok = 0, ng = 0;
+    var diaries = _exByDate(state.diary);
+    for(var i=0;i<diaries.length;i++){
+      var r = diaries[i];
+      var urls = String(r[10]||'').split(/\s+/).filter(Boolean);
+      var local = await loadPhotos(r[0]);
+      var count = Math.max(urls.length, local.length);
+      for(var k=0;k<count;k++){
+        say('写真を集めています… ' + (ok+ng+1) + '枚目');
+        var bytes = null;
+        if(urls[k] && navigator.onLine){
+          try { var res = await fetch(urls[k]); if(res.ok) bytes = new Uint8Array(await res.arrayBuffer()); } catch(e){}
+        }
+        if(!bytes && local[k]) bytes = _dataUrlBytes(local[k]);
+        if(!bytes){ ng++; continue; }
+        var nm = '写真/' + r[1] + '_' + _exSafe(r[8]) + '_' + String(r[0]).slice(-6) + '_' + (k+1) + '.jpg';
+        (_exPhotoNames[r[0]] = _exPhotoNames[r[0]] || []).push(nm);
+        photos.push({ name: base + '/' + nm, data: bytes });
+        ok++;
+      }
+    }
+
+    // 表（プランで使える機能の分だけ。使えない機能の記録は読めないため）
+    EXPORT_TABLES.forEach(function(def){
+      if(!sheetAvailable(def.sheet)) return;
+      var rows = state[def.key] || [];
+      files.push({ name: base + '/' + def.file + '.csv', data: enc.encode(_exCsv(def, rows)) });
+      counts.push(def.file + ' ' + rows.length + '件');
+    });
+    files.push({ name: base + '/はじめにお読みください.txt', data: enc.encode('﻿' + [
+      '作業管理アプリの記録（' + day + ' 書き出し）',
+      '',
+      '・○○.csv … 表計算ソフト（Excel・Numbers・Googleスプレッドシート）で開けます',
+      '・写真フォルダ … 作業日報の写真です。作業日報.csv の「写真」の列にファイル名があります',
+      '・「ID」の列は、アプリの中で記録を見分けるための番号です',
+      '',
+      '内容：' + counts.join('、') + '、写真 ' + ok + '枚'
+    ].join('\r\n') + '\r\n') });
+    files = files.concat(photos);
+
+    say('ファイルを作っています…');
+    var blob = _makeZip(files);
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = base + '.zip';
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 10000);
+
+    say('書き出しました（' + counts.join('、') + '、写真 ' + ok + '枚）' + (ng ? '。写真 ' + ng + '枚は取り込めませんでした。電波のある場所でもう一度お試しください' : ''));
+    toast(ng ? '書き出しました（写真 ' + ng + '枚は取り込めませんでした）' : '記録を書き出しました', ng ? 'error' : undefined);
+  } catch(e){
+    say('書き出せませんでした：' + (e && e.message ? e.message : e));
+    toast('書き出せませんでした','error');
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 // ============================================================
